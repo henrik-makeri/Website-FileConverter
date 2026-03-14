@@ -1391,8 +1391,7 @@ function App() {
           <article>
             <h3>Best next upgrade</h3>
             <p>
-              Add a backend pipeline for OCR, image conversion, and heavier office formats that go
-              beyond browser-only processing.
+              Add a backend pipeline for OCR, image conversion.
             </p>
           </article>
         </div>
