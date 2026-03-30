@@ -1,27 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap');
 
 :root {
-  --bg-top: #fff5e6;
-  --bg-bottom: #edf7f4;
-  --surface: rgba(255, 255, 255, 0.82);
-  --surface-muted: rgba(247, 250, 252, 0.96);
-  --line: rgba(15, 23, 42, 0.1);
-  --ink: #0f172a;
-  --ink-soft: #4b5563;
-  --accent-strong: #134e4a;
-  --danger: #b91c1c;
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
-  --shadow-deep: 0 32px 70px rgba(15, 23, 42, 0.14);
-  --font-body: 'Space Grotesk', 'Segoe UI', sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
+  --ink: #111827;
+  --ink-soft: #5b6472;
+  --danger: #c0392b;
+  --font-body: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+  --font-display: 'Source Serif 4', Georgia, serif;
   font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
   color: var(--ink);
-  background:
-    radial-gradient(circle at top left, rgba(245, 158, 11, 0.22), transparent 28%),
-    radial-gradient(circle at top right, rgba(15, 118, 110, 0.16), transparent 24%),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 58%, #f8fafc 100%);
+  background: #f3f1ed;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -40,18 +29,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(circle at center, black 26%, transparent 82%);
-  pointer-events: none;
+  background:
+    linear-gradient(180deg, #2d2d2d 0, #2d2d2d 430px, #f3f1ed 430px, #f3f1ed 100%);
 }
 
 button,
@@ -73,20 +52,16 @@ p {
 }
 
 h1 {
-  margin-bottom: 18px;
   font-family: var(--font-display);
-  font-size: clamp(3.2rem, 8vw, 6.1rem);
-  line-height: 0.94;
-  letter-spacing: -0.055em;
 }
 
 h2 {
-  font-size: clamp(1.7rem, 3vw, 2.3rem);
-  line-height: 1.04;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  line-height: 1.08;
 }
 
 h3 {
-  font-size: 1.16rem;
+  font-size: 1.06rem;
 }
 
 a {
@@ -98,5 +73,5 @@ a {
 }
 
 ::selection {
-  background: rgba(15, 118, 110, 0.18);
+  background: rgba(191, 72, 61, 0.18);
 }

@@ -9,10 +9,17 @@ const FORMAT_OPTIONS = [
   { value: 'txt', label: 'Plain text' },
   { value: 'docx', label: 'DOCX' },
   { value: 'pdf', label: 'PDF' },
+  { value: 'jpg', label: 'JPG' },
+  { value: 'png', label: 'PNG' },
+  { value: 'webp', label: 'WEBP' },
+  { value: 'mp4', label: 'MP4' },
+  { value: 'mp3', label: 'MP3' },
 ]
 
-const BINARY_SOURCE_FORMATS = new Set(['docx', 'pdf'])
+const BINARY_SOURCE_FORMATS = new Set(['docx', 'pdf', 'jpg', 'png', 'webp', 'mp4', 'mp3'])
 const DOCUMENT_TARGET_FORMATS = new Set(['docx', 'pdf'])
+const IMAGE_FORMATS = new Set(['jpg', 'png', 'webp'])
+const AUDIO_VIDEO_FORMATS = new Set(['mp4', 'mp3'])
 
 const FORMAT_EXTENSIONS = {
   csv: 'csv',
@@ -22,6 +29,11 @@ const FORMAT_EXTENSIONS = {
   txt: 'txt',
   docx: 'docx',
   pdf: 'pdf',
+  jpg: 'jpg',
+  png: 'png',
+  webp: 'webp',
+  mp4: 'mp4',
+  mp3: 'mp3',
 }
 
 const MIME_TYPES = {
@@ -30,6 +42,11 @@ const MIME_TYPES = {
   markdown: 'text/markdown;charset=utf-8',
   html: 'text/html;charset=utf-8',
   txt: 'text/plain;charset=utf-8',
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  mp4: 'video/mp4',
+  mp3: 'audio/mpeg',
 }
 
 const SUPPORTED_CONVERSIONS = [
@@ -58,9 +75,40 @@ const SUPPORTED_CONVERSIONS = [
   { from: 'pdf', to: 'markdown' },
   { from: 'pdf', to: 'html' },
   { from: 'pdf', to: 'docx' },
+  { from: 'jpg', to: 'png' },
+  { from: 'jpg', to: 'webp' },
+  { from: 'jpg', to: 'pdf' },
+  { from: 'png', to: 'jpg' },
+  { from: 'png', to: 'webp' },
+  { from: 'png', to: 'pdf' },
+  { from: 'webp', to: 'jpg' },
+  { from: 'webp', to: 'png' },
+  { from: 'webp', to: 'pdf' },
+  { from: 'mp4', to: 'mp3' },
 ]
 
 const FEATURED_RECIPES = [
+  {
+    id: 'jpg-pdf',
+    from: 'jpg',
+    to: 'pdf',
+    title: 'JPG to PDF',
+    description: 'Package a single image into a PDF without leaving the browser.',
+  },
+  {
+    id: 'mp4-mp3',
+    from: 'mp4',
+    to: 'mp3',
+    title: 'MP4 to MP3',
+    description: 'Extract the audio track from an uploaded MP4 and download it as MP3.',
+  },
+  {
+    id: 'png-jpg',
+    from: 'png',
+    to: 'jpg',
+    title: 'Image Converter',
+    description: 'Convert common browser-friendly image formats between JPG, PNG, and WEBP.',
+  },
   {
     id: 'csv-json',
     from: 'csv',
@@ -194,10 +242,89 @@ const STEPS = [
   },
 ]
 
+const VALUE_POINTS = [
+  {
+    title: 'Focused format support',
+    body: 'Built around practical document and text conversions instead of a generic placeholder feature list.',
+  },
+  {
+    title: 'Private for current workflows',
+    body: 'DOCX parsing, PDF text extraction, previewing, and export generation all run in the browser for supported flows.',
+  },
+  {
+    title: 'Quality-first output',
+    body: 'The app previews extracted content before download so people can catch formatting problems early.',
+  },
+  {
+    title: 'Expandable foundation',
+    body: 'The format directory now includes browser-side document, image, and a first media workflow, with room for OCR and heavier pipelines later.',
+  },
+]
+
+const DIRECTORY_GROUPS = [
+  {
+    title: 'Video & Audio',
+    description: 'A first browser-side media route is live, with broader audio and video support still planned.',
+    items: [
+      { label: 'Video Converter', status: 'planned' },
+      { label: 'Audio Converter', status: 'planned' },
+      { label: 'MP3 Converter', status: 'planned' },
+      { label: 'MP4 to MP3', from: 'mp4', to: 'mp3', status: 'live' },
+      { label: 'Video to MP3', status: 'planned' },
+      { label: 'MOV to MP4', status: 'planned' },
+      { label: 'MP3 to OGG', status: 'planned' },
+    ],
+  },
+  {
+    title: 'Image',
+    description: 'Browser-friendly image routes now work for JPG, PNG, WEBP, and PDF packaging.',
+    items: [
+      { label: 'Image Converter', from: 'png', to: 'jpg', status: 'live' },
+      { label: 'WEBP to PNG', from: 'webp', to: 'png', status: 'live' },
+      { label: 'JFIF to PNG', from: 'jpg', to: 'png', status: 'live' },
+      { label: 'PNG to SVG', status: 'planned' },
+      { label: 'HEIC to JPG', status: 'planned' },
+      { label: 'HEIC to PNG', status: 'planned' },
+      { label: 'WEBP to JPG', from: 'webp', to: 'jpg', status: 'live' },
+      { label: 'SVG Converter', status: 'planned' },
+    ],
+  },
+  {
+    title: 'PDF & Documents',
+    description: 'These routes are wired to the current browser-based document converter where possible.',
+    items: [
+      { label: 'PDF Converter', from: 'pdf', to: 'txt', status: 'live' },
+      { label: 'Document Converter', from: 'docx', to: 'html', status: 'live' },
+      { label: 'Ebook Converter', status: 'planned' },
+      { label: 'PDF to Word', from: 'pdf', to: 'docx', status: 'live' },
+      { label: 'PDF to HTML', from: 'pdf', to: 'html', status: 'live' },
+      { label: 'PDF to Markdown', from: 'pdf', to: 'markdown', status: 'live' },
+      { label: 'DOCX to PDF', from: 'docx', to: 'pdf', status: 'live' },
+      { label: 'JPG to PDF', from: 'jpg', to: 'pdf', status: 'live' },
+    ],
+  },
+]
+
+const FOOTER_LINK_GROUPS = [
+  {
+    title: 'Company',
+    links: ['About', 'Security', 'Status'],
+  },
+  {
+    title: 'Resources',
+    links: ['Format guide', 'API roadmap', 'Changelog'],
+  },
+  {
+    title: 'Legal',
+    links: ['Privacy', 'Terms', 'Contact'],
+  },
+]
+
 let mammothLoader
 let pdfjsLoader
 let docxLoader
 let jsPdfLoader
+let lameJsLoader
 
 async function loadMammoth() {
   if (!mammothLoader) {
@@ -236,6 +363,14 @@ async function loadJsPdf() {
   }
 
   return jsPdfLoader
+}
+
+async function loadLameJs() {
+  if (!lameJsLoader) {
+    lameJsLoader = import('lamejs').then((module) => module.default ?? module)
+  }
+
+  return lameJsLoader
 }
 
 function escapeHtml(value) {
@@ -670,6 +805,172 @@ function buildPreformattedHtml(title, input) {
 </article>`
 }
 
+function formatBytes(byteLength) {
+  if (!byteLength) {
+    return '0 B'
+  }
+
+  const units = ['B', 'KB', 'MB', 'GB']
+  const unitIndex = Math.min(Math.floor(Math.log(byteLength) / Math.log(1024)), units.length - 1)
+  const value = byteLength / 1024 ** unitIndex
+
+  return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
+}
+
+function getObjectUrlFromBytes(sourceBytes, mimeType) {
+  return URL.createObjectURL(new Blob([sourceBytes], { type: mimeType }))
+}
+
+function inferImageMimeType(format) {
+  return MIME_TYPES[format] || 'application/octet-stream'
+}
+
+async function loadImageFromBytes(sourceBytes, format) {
+  const objectUrl = getObjectUrlFromBytes(sourceBytes, inferImageMimeType(format))
+
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const nextImage = new Image()
+      nextImage.onload = () => resolve(nextImage)
+      nextImage.onerror = () => reject(new Error('This image file could not be decoded.'))
+      nextImage.src = objectUrl
+    })
+
+    return image
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
+async function getImageMetadata(sourceBytes, format) {
+  const image = await loadImageFromBytes(sourceBytes, format)
+
+  return {
+    width: image.naturalWidth,
+    height: image.naturalHeight,
+  }
+}
+
+async function convertImageBlob(sourceBytes, sourceFormat, targetFormat) {
+  const image = await loadImageFromBytes(sourceBytes, sourceFormat)
+  const canvas = document.createElement('canvas')
+  canvas.width = image.naturalWidth
+  canvas.height = image.naturalHeight
+  const context = canvas.getContext('2d')
+
+  if (!context) {
+    throw new Error('Canvas is not available in this browser.')
+  }
+
+  if (targetFormat === 'jpg') {
+    context.fillStyle = '#ffffff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+  }
+
+  context.drawImage(image, 0, 0)
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('The image could not be converted.'))
+        return
+      }
+
+      resolve(blob)
+    }, inferImageMimeType(targetFormat), targetFormat === 'jpg' ? 0.92 : undefined)
+  })
+}
+
+async function getVideoMetadata(sourceBytes) {
+  const objectUrl = getObjectUrlFromBytes(sourceBytes, MIME_TYPES.mp4)
+
+  try {
+    const video = document.createElement('video')
+    video.preload = 'metadata'
+    video.src = objectUrl
+
+    await new Promise((resolve, reject) => {
+      video.onloadedmetadata = () => resolve()
+      video.onerror = () => reject(new Error('This MP4 file could not be read for metadata.'))
+    })
+
+    return {
+      duration: Number.isFinite(video.duration) ? video.duration : 0,
+      width: video.videoWidth,
+      height: video.videoHeight,
+    }
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
+function formatDuration(seconds) {
+  if (!seconds) {
+    return '0:00'
+  }
+
+  const totalSeconds = Math.round(seconds)
+  const minutes = Math.floor(totalSeconds / 60)
+  const remainingSeconds = String(totalSeconds % 60).padStart(2, '0')
+  return `${minutes}:${remainingSeconds}`
+}
+
+function float32ToInt16(float32Array) {
+  const int16Array = new Int16Array(float32Array.length)
+
+  for (let index = 0; index < float32Array.length; index += 1) {
+    const sample = Math.max(-1, Math.min(1, float32Array[index]))
+    int16Array[index] = sample < 0 ? sample * 0x8000 : sample * 0x7fff
+  }
+
+  return int16Array
+}
+
+async function convertMp4ToMp3Blob(sourceBytes) {
+  const lamejs = await loadLameJs()
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext
+
+  if (!AudioContextClass) {
+    throw new Error('Audio conversion is not supported in this browser.')
+  }
+
+  const audioContext = new AudioContextClass()
+
+  try {
+    const audioBuffer = await audioContext.decodeAudioData(sourceBytes.slice().buffer)
+    const channelCount = Math.min(audioBuffer.numberOfChannels, 2)
+    const encoder = new lamejs.Mp3Encoder(channelCount, audioBuffer.sampleRate, 128)
+    const leftChannel = audioBuffer.getChannelData(0)
+    const rightChannel = channelCount > 1 ? audioBuffer.getChannelData(1) : null
+    const blockSize = 1152
+    const mp3Chunks = []
+
+    for (let index = 0; index < leftChannel.length; index += blockSize) {
+      const leftChunk = float32ToInt16(leftChannel.subarray(index, index + blockSize))
+      const encodedChunk =
+        channelCount > 1 && rightChannel
+          ? encoder.encodeBuffer(leftChunk, float32ToInt16(rightChannel.subarray(index, index + blockSize)))
+          : encoder.encodeBuffer(leftChunk)
+
+      if (encodedChunk.length) {
+        mp3Chunks.push(new Uint8Array(encodedChunk))
+      }
+    }
+
+    const flushChunk = encoder.flush()
+
+    if (flushChunk.length) {
+      mp3Chunks.push(new Uint8Array(flushChunk))
+    }
+
+    return new Blob(mp3Chunks, { type: MIME_TYPES.mp3 })
+  } catch {
+    throw new Error('This MP4 file could not be converted to MP3 in the browser.')
+  } finally {
+    await audioContext.close()
+  }
+}
+
 async function extractPdfText(sourceBytes) {
   const pdfjs = await loadPdfJs()
   const loadingTask = pdfjs.getDocument({ data: sourceBytes.slice() })
@@ -752,6 +1053,36 @@ async function buildRichContent(sourceFormat, inputText, sourceBytes) {
     }
   }
 
+  if (IMAGE_FORMATS.has(sourceFormat)) {
+    if (!sourceBytes) {
+      return null
+    }
+
+    const metadata = await getImageMetadata(sourceBytes, sourceFormat)
+
+    return {
+      text: `${getFormatLabel(sourceFormat)} image loaded\n${metadata.width} x ${metadata.height}px\n${formatBytes(sourceBytes.byteLength)}`,
+      imageFormat: sourceFormat,
+      sourceBytes,
+      ...metadata,
+    }
+  }
+
+  if (sourceFormat === 'mp4') {
+    if (!sourceBytes) {
+      return null
+    }
+
+    const metadata = await getVideoMetadata(sourceBytes)
+
+    return {
+      text: `MP4 video loaded\nDuration ${formatDuration(metadata.duration)}\n${metadata.width} x ${metadata.height}px\n${formatBytes(sourceBytes.byteLength)}`,
+      mediaFormat: sourceFormat,
+      sourceBytes,
+      ...metadata,
+    }
+  }
+
   if (!trimmedInput) {
     return null
   }
@@ -814,6 +1145,10 @@ function convertToTextTarget(sourceFormat, targetFormat, inputText, richContent)
     return richContent.text
   }
 
+  if (IMAGE_FORMATS.has(targetFormat)) {
+    return `${richContent.text}\n\nOutput will be generated as ${getFormatLabel(targetFormat)}.`
+  }
+
   if (targetFormat === 'html') {
     return richContent.html
   }
@@ -823,7 +1158,15 @@ function convertToTextTarget(sourceFormat, targetFormat, inputText, richContent)
   }
 
   if (targetFormat === 'pdf' || targetFormat === 'docx') {
+    if (richContent.imageFormat) {
+      return `${richContent.text}\n\nOutput will be packaged as a PDF document.`
+    }
+
     return richContent.text
+  }
+
+  if (targetFormat === 'mp3') {
+    return `${richContent.text}\n\nAudio will be extracted and encoded as MP3 during download.`
   }
 
   throw new Error('That conversion path is not supported yet.')
@@ -898,6 +1241,41 @@ async function buildDocxBlob(richContent) {
 
 async function buildPdfBlob(richContent) {
   const jsPDF = await loadJsPdf()
+
+  if (richContent.imageFormat && richContent.sourceBytes) {
+    const image = await loadImageFromBytes(richContent.sourceBytes, richContent.imageFormat)
+    const canvas = document.createElement('canvas')
+    canvas.width = image.naturalWidth
+    canvas.height = image.naturalHeight
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+      throw new Error('Canvas is not available in this browser.')
+    }
+
+    context.fillStyle = '#ffffff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.drawImage(image, 0, 0)
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+    const orientation = image.naturalWidth >= image.naturalHeight ? 'landscape' : 'portrait'
+    const pdf = new jsPDF({
+      orientation,
+      unit: 'pt',
+      format: 'a4',
+    })
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    const ratio = Math.min(pageWidth / image.naturalWidth, pageHeight / image.naturalHeight)
+    const renderWidth = image.naturalWidth * ratio
+    const renderHeight = image.naturalHeight * ratio
+    const x = (pageWidth - renderWidth) / 2
+    const y = (pageHeight - renderHeight) / 2
+
+    pdf.addImage(dataUrl, 'JPEG', x, y, renderWidth, renderHeight)
+    return pdf.output('blob')
+  }
+
   const pdf = new jsPDF({
     unit: 'pt',
     format: 'a4',
@@ -946,6 +1324,10 @@ function inferFormatFromFileName(fileName) {
     return 'markdown'
   }
 
+  if (extension === 'jpeg' || extension === 'jfif') {
+    return 'jpg'
+  }
+
   return FORMAT_OPTIONS.find((format) => format.value === extension)?.value ?? ''
 }
 
@@ -969,7 +1351,19 @@ function getSourceDisplayValue(sourceFormat, uploadedFileName) {
   if (uploadedFileName) {
     return `Loaded ${uploadedFileName}.
 
-This source stays as a binary document, and the converter extracts its content client-side before building the output.`
+This source stays as a binary file, and the converter prepares the output client-side before building the download.`
+  }
+
+  if (IMAGE_FORMATS.has(sourceFormat)) {
+    return `Upload a ${getFormatLabel(sourceFormat)} file to start.
+
+Image routes currently support JPG, PNG, and WEBP conversions plus image-to-PDF packaging.`
+  }
+
+  if (sourceFormat === 'mp4') {
+    return `Upload an MP4 file to start.
+
+The browser will decode the audio track locally and encode it as MP3 during download.`
   }
 
   return `Upload a ${getFormatLabel(sourceFormat)} file to start.
@@ -1081,6 +1475,15 @@ function App() {
     })
   }
 
+  function handleDirectorySelect(item) {
+    if (item.status !== 'live') {
+      return
+    }
+
+    handleRecipeSelect(item)
+    document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   function handleResetInput() {
     if (isBinarySource) {
       switchSource(sourceFormat, targetFormat, {
@@ -1118,6 +1521,18 @@ function App() {
       if (targetFormat === 'pdf') {
         const blob = await buildPdfBlob(richContent)
         triggerDownload(blob, `${baseName}.pdf`)
+        return
+      }
+
+      if (IMAGE_FORMATS.has(targetFormat) && richContent.sourceBytes) {
+        const blob = await convertImageBlob(richContent.sourceBytes, sourceFormat, targetFormat)
+        triggerDownload(blob, `${baseName}.${FORMAT_EXTENSIONS[targetFormat]}`)
+        return
+      }
+
+      if (targetFormat === 'mp3' && richContent.sourceBytes) {
+        const blob = await convertMp4ToMp3Blob(richContent.sourceBytes)
+        triggerDownload(blob, `${baseName}.mp3`)
         return
       }
 
@@ -1176,70 +1591,337 @@ function App() {
   }
 
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow-row">
-            <span className="eyebrow">Browser-first converter</span>
-            <span className="eyebrow muted">Now handling DOCX and text-based PDF workflows too</span>
-          </div>
-          <h1>Turn files into the format your next step actually needs.</h1>
-          <p className="hero-body">
-            This version converts common text-based formats, extracts content from DOCX and PDF
-            uploads, and exports real PDF or DOCX downloads directly from the browser.
-          </p>
+    <main className="site-shell">
+      <section className="hero-shell">
+        <div className="page-shell hero-shell-inner">
+          <header className="topbar">
+            <div className="brand">
+              <span className="brand-mark">FC</span>
+              <span className="brand-wordmark">fileconvert</span>
+            </div>
 
-          <div className="hero-metrics">
-            <div className="metric-card">
-              <strong>{FORMAT_OPTIONS.length}</strong>
-              <span>formats supported today</span>
-            </div>
-            <div className="metric-card">
-              <strong>{SUPPORTED_CONVERSIONS.length}</strong>
-              <span>conversion paths available</span>
-            </div>
-            <div className="metric-card">
-              <strong>2</strong>
-              <span>document formats added beyond the first pass</span>
-            </div>
-          </div>
+            <nav className="topnav" aria-label="Primary">
+              <a href="#directory">Tools</a>
+              <a href="#workspace">Formats</a>
+              <a href="#highlights">API</a>
+              <a href="#footer">Pricing</a>
+            </nav>
 
-          <div className="feature-grid">
-            {FEATURE_PANELS.map((panel) => (
-              <article className="feature-card" key={panel.title}>
-                <p className="feature-eyebrow">{panel.eyebrow}</p>
-                <h2>{panel.title}</h2>
-                <p>{panel.body}</p>
+            <div className="account-links">
+              <a href="#workspace">Sign Up</a>
+              <a href="#workspace">Login</a>
+            </div>
+          </header>
+
+          <section className="hero">
+            <div className="hero-copy">
+              <div className="eyebrow-row">
+                <span className="eyebrow">File converter</span>
+                <span className="eyebrow muted">Browser-based for current document workflows</span>
+              </div>
+
+              <h1>Convert the file you have into the format you actually need.</h1>
+              <p className="hero-body">
+                Convert common text, PDF, and document formats directly in the browser. Use the
+                quick controls for the main conversion flow, then drop into the workspace for
+                previewing, editing, and downloading.
+              </p>
+
+              <div className="hero-inline-form">
+                <span className="hero-inline-label">convert</span>
+                <select
+                  className="hero-select"
+                  value={sourceFormat}
+                  onChange={(event) => handleSourceChange(event.target.value)}
+                  aria-label="Source format"
+                >
+                  {FORMAT_OPTIONS.filter((option) =>
+                    SUPPORTED_CONVERSIONS.some((recipe) => recipe.from === option.value),
+                  ).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="hero-inline-label">to</span>
+                <select
+                  className="hero-select"
+                  value={targetFormat}
+                  onChange={(event) => {
+                    resetErrors()
+                    setTargetFormat(event.target.value)
+                  }}
+                  aria-label="Target format"
+                >
+                  {availableTargets.map((format) => (
+                    <option key={format} value={format}>
+                      {getFormatLabel(format)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="hero-panel">
+              <div className="hero-panel-metrics">
+                <article className="metric-card">
+                  <strong>{FORMAT_OPTIONS.length}</strong>
+                  <span>formats live today</span>
+                </article>
+                <article className="metric-card">
+                  <strong>{SUPPORTED_CONVERSIONS.length}</strong>
+                  <span>available conversion paths</span>
+                </article>
+                <article className="metric-card">
+                  <strong>Docs</strong>
+                  <span>PDF and DOCX workflows included</span>
+                </article>
+              </div>
+
+              <div className="hero-panel-note">
+                <p className="panel-label">Current strength</p>
+                <p>
+                  Best for document-heavy conversions where people want a quick preview before they
+                  download the result.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <label className="hero-upload-cta">
+            <input type="file" onChange={handleFileUpload} />
+            <span className="cta-main">
+              {uploadedFileName ? `Selected: ${uploadedFileName}` : 'Select File'}
+            </span>
+            <span className="cta-meta">
+              Supports documents, browser-friendly images, and MP4 to MP3 extraction
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <div className="page-shell page-content">
+        <section className="directory-section" id="directory">
+          <div className="directory-grid">
+            {DIRECTORY_GROUPS.map((group) => (
+              <article className="directory-column" key={group.title}>
+                <div className="directory-head">
+                  <h2>{group.title}</h2>
+                  <p>{group.description}</p>
+                </div>
+
+                <div className="directory-list">
+                  {group.items.map((item) => (
+                    <button
+                      key={item.label}
+                      className={`directory-link ${item.status === 'live' ? 'live' : 'planned'} ${
+                        item.from && item.to && activeRecipeId === `${item.from}-${item.to}` ? 'active' : ''
+                      }`}
+                      type="button"
+                      onClick={() => handleDirectorySelect(item)}
+                    >
+                      <span>{item.label}</span>
+                      <small>{item.status === 'live' ? 'Available now' : 'Planned'}</small>
+                    </button>
+                  ))}
+                </div>
               </article>
             ))}
           </div>
-        </div>
+        </section>
 
-        <section className="studio" aria-label="Format conversion studio">
-          <div className="studio-topbar">
+        <section className="workspace-section" id="workspace">
+          <div className="workspace-header">
             <div>
-              <p className="panel-label">Format lab</p>
-              <h2>Paste, upload, preview, and download</h2>
+              <p className="section-kicker">Workspace</p>
+              <h2>Preview and export your conversion.</h2>
             </div>
             <span className="status-pill">
-              {isDownloading ? 'Building file...' : isProcessing ? 'Converting...' : 'Live preview'}
+              {isDownloading ? 'Building file...' : isProcessing ? 'Converting...' : 'Ready'}
             </span>
           </div>
 
-          <div className="recipe-list" aria-label="Suggested conversion recipes">
-            {FEATURED_RECIPES.map((recipe) => (
-              <button
-                key={recipe.id}
-                className={`recipe-chip ${activeRecipeId === recipe.id ? 'active' : ''}`}
-                type="button"
-                onClick={() => handleRecipeSelect(recipe)}
-              >
-                <strong>{recipe.title}</strong>
-                <span>{recipe.description}</span>
-              </button>
+          <div className="workspace-grid">
+            <aside className="workspace-sidebar">
+              <div className="sidebar-panel">
+                <p className="panel-label">Popular routes</p>
+                <div className="recipe-list" aria-label="Suggested conversion recipes">
+                  {FEATURED_RECIPES.map((recipe) => (
+                    <button
+                      key={recipe.id}
+                      className={`recipe-chip ${activeRecipeId === recipe.id ? 'active' : ''}`}
+                      type="button"
+                      onClick={() => handleRecipeSelect(recipe)}
+                    >
+                      <strong>{recipe.title}</strong>
+                      <span>{recipe.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="sidebar-panel muted-panel">
+                <p className="panel-label">Current limits</p>
+                <p>
+                  PDF extraction still depends on selectable text. Scanned PDFs, OCR, and broader
+                  media conversion remain the next layer to add.
+                </p>
+              </div>
+            </aside>
+
+            <section className="studio" aria-label="Format conversion studio">
+              <div className="control-grid">
+                <label className="field">
+                  <span>From</span>
+                  <select value={sourceFormat} onChange={(event) => handleSourceChange(event.target.value)}>
+                    {FORMAT_OPTIONS.filter((option) =>
+                      SUPPORTED_CONVERSIONS.some((recipe) => recipe.from === option.value),
+                    ).map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <span>To</span>
+                  <select
+                    value={targetFormat}
+                    onChange={(event) => {
+                      resetErrors()
+                      setTargetFormat(event.target.value)
+                    }}
+                  >
+                    {availableTargets.map((format) => (
+                      <option key={format} value={format}>
+                        {getFormatLabel(format)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <label className="upload-panel">
+                <input type="file" onChange={handleFileUpload} />
+                <span className="panel-label">Upload a file</span>
+                <strong>{uploadedFileName || 'Choose a source file for this conversion'}</strong>
+                <span>
+                  DOCX uploads are parsed in-browser. Image routes support JPG, PNG, and WEBP.
+                  PDF uploads still work best when the source already contains selectable text.
+                </span>
+              </label>
+
+              <div className="editor-grid">
+                <label className="editor-panel">
+                  <span className="panel-label">Input</span>
+                  <textarea
+                    value={displayedInputValue}
+                    onChange={(event) => {
+                      if (isBinarySource) {
+                        return
+                      }
+
+                      resetErrors()
+                      setUploadedFileName('')
+                      setSourceBytes(null)
+                      setInputText(event.target.value)
+                    }}
+                    readOnly={isBinarySource}
+                    spellCheck="false"
+                    aria-label={`${getFormatLabel(sourceFormat)} input`}
+                  />
+                </label>
+
+                <label className="editor-panel">
+                  <span className="panel-label">
+                    {isDocumentTarget ? `${getFormatLabel(targetFormat)} export preview` : 'Output'}
+                  </span>
+                  <textarea
+                    value={conversionPreview}
+                    readOnly
+                    spellCheck="false"
+                    aria-label={`${getFormatLabel(targetFormat)} output`}
+                  />
+                </label>
+              </div>
+
+              <div className="studio-footer">
+                <button className="secondary-button" type="button" onClick={handleResetInput}>
+                  {isBinarySource
+                    ? `Reset ${getFormatLabel(sourceFormat)} upload`
+                    : `Load ${getFormatLabel(sourceFormat)} example`}
+                </button>
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={handleDownload}
+                  disabled={!conversionPreview || isProcessing || isDownloading}
+                >
+                  {isDownloading ? 'Preparing file...' : `Download ${getFormatLabel(targetFormat)}`}
+                </button>
+              </div>
+
+              {errorMessage ? <p className="feedback error">{errorMessage}</p> : null}
+              {!errorMessage && !conversionPreview ? (
+                <p className="feedback">
+                  {isBinarySource
+                    ? `Upload a ${getFormatLabel(sourceFormat)} file to generate output.`
+                    : 'Paste content or upload a supported file to generate output.'}
+                </p>
+              ) : null}
+              {!errorMessage && conversionPreview && isDocumentTarget ? (
+                <p className="feedback">
+                  The preview shows the text content that will be packaged into the downloaded {getFormatLabel(targetFormat)} file.
+                </p>
+              ) : null}
+            </section>
+          </div>
+        </section>
+
+        <section className="highlights-section" id="highlights">
+          <div className="value-grid">
+            {VALUE_POINTS.map((point) => (
+              <article className="value-card" key={point.title}>
+                <h3>{point.title}</h3>
+                <p>{point.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="section-block">
+          <div className="section-heading">
+            <p className="section-kicker">How it works</p>
+            <h2>A practical flow for real file conversion tasks.</h2>
+          </div>
+
+          <div className="steps-grid">
+            {STEPS.map((step) => (
+              <article className="step-card" key={step.number}>
+                <span>{step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <footer className="footer-block" id="footer">
+          <div className="footer-links">
+            {FOOTER_LINK_GROUPS.map((group) => (
+              <div key={group.title}>
+                <h3>{group.title}</h3>
+                {group.links.map((link) => (
+                  <a href="#workspace" key={link}>
+                    {link}
+                  </a>
+                ))}
+              </div>
             ))}
           </div>
 
+<<<<<<< HEAD
           <div className="control-grid">
             <label className="field">
               <span>From</span>
@@ -1396,6 +2078,14 @@ function App() {
           </article>
         </div>
       </section>
+=======
+          <p className="footer-stat">
+            Built to grow from the current {SUPPORTED_CONVERSIONS.length} browser-first conversion
+            paths into a fuller hosted conversion service.
+          </p>
+        </footer>
+      </div>
+>>>>>>> bdbcc49 (Update converter UI and add new media/image features)
     </main>
   )
 }
