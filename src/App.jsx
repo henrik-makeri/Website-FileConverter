@@ -883,9 +883,9 @@ async function convertImageBlob(sourceBytes, sourceFormat, targetFormat) {
 
 async function getVideoMetadata(sourceBytes) {
   const objectUrl = getObjectUrlFromBytes(sourceBytes, MIME_TYPES.mp4)
+  const video = document.createElement('video')
 
   try {
-    const video = document.createElement('video')
     video.preload = 'metadata'
     video.src = objectUrl
 
@@ -900,6 +900,7 @@ async function getVideoMetadata(sourceBytes) {
       height: video.videoHeight,
     }
   } finally {
+    video.src = ''
     URL.revokeObjectURL(objectUrl)
   }
 }
@@ -964,7 +965,8 @@ async function convertMp4ToMp3Blob(sourceBytes) {
     }
 
     return new Blob(mp3Chunks, { type: MIME_TYPES.mp3 })
-  } catch {
+  } catch (error) {
+    console.error('MP4 to MP3 conversion error:', error)
     throw new Error('This MP4 file could not be converted to MP3 in the browser.')
   } finally {
     await audioContext.close()
@@ -1309,8 +1311,14 @@ function triggerDownload(blob, fileName) {
   const link = document.createElement('a')
   link.href = downloadUrl
   link.download = fileName
-  link.click()
-  URL.revokeObjectURL(downloadUrl)
+  document.body.appendChild(link)
+
+  try {
+    link.click()
+  } finally {
+    document.body.removeChild(link)
+    URL.revokeObjectURL(downloadUrl)
+  }
 }
 
 function inferFormatFromFileName(fileName) {
@@ -1392,6 +1400,7 @@ function App() {
     ? getSourceDisplayValue(sourceFormat, uploadedFileName)
     : inputText
   const errorMessage = uploadError || conversionError
+  const debounceMs = sourceBytes && isBinarySource ? 300 : 0
 
   useEffect(() => {
     let cancelled = false
@@ -1432,13 +1441,13 @@ function App() {
           setIsProcessing(false)
         }
       }
-    }, 0)
+    }, debounceMs)
 
     return () => {
       cancelled = true
       window.clearTimeout(timerId)
     }
-  }, [inputText, sourceBytes, sourceFormat, targetFormat])
+  }, [debounceMs, inputText, sourceBytes, sourceFormat, targetFormat])
 
   function resetErrors() {
     setUploadError('')
@@ -1538,6 +1547,8 @@ function App() {
 
       const blob = new Blob([conversionPreview], { type: MIME_TYPES[targetFormat] })
       triggerDownload(blob, `${baseName}.${FORMAT_EXTENSIONS[targetFormat]}`)
+    } catch (error) {
+      setConversionError(error.message || 'Download failed. Please try again.')
     } finally {
       setIsDownloading(false)
     }
