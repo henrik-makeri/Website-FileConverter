@@ -11,7 +11,7 @@ Overview:
 Website-FileConverter is a portfolio project focused on practical in-browser conversion workflows. Instead of a placeholder landing page, it gives users a real conversion workspace where they can upload files, preview the result, and export the converted output directly from the browser.
 
 Why I built this:
-I wanted to build a project that felt closer to a real product than a starter app. This site let me work on browser-side file handling, document and media conversion flows, error handling, and a more polished interface that shows both frontend and practical product thinking.
+I wanted to make something real for my first project and have a finished website I could actually show people. This gave me a chance to build something more than a basic starter app while learning how to handle file uploads, conversions, and a more polished interface.
 
 Key features:
 - Convert CSV, JSON, Markdown, HTML, and plain text between multiple formats
@@ -28,9 +28,3 @@ Tech stack:
 - `mammoth` for DOCX extraction
 - `docx` and `jspdf` for document export
 - `lamejs` for MP3 encoding
-
-What this project demonstrates:
-- File handling and browser-side binary processing
-- Format conversion logic for text, document, image, and media workflows
-- Error handling and cleanup for object URLs, downloads, and conversion failures
-- Product-style frontend design instead of a default starter template
