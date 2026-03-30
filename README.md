@@ -5,8 +5,13 @@ Browser-first file conversion app built with React and Vite. It supports documen
 Live demo:
 [https://henrik-makeri.github.io/Website-FileConverter/](https://henrik-makeri.github.io/Website-FileConverter/)
 
+![Website-FileConverter preview](./docs/website-preview.png)
+
 Overview:
 Website-FileConverter is a portfolio project focused on practical in-browser conversion workflows. Instead of a placeholder landing page, it gives users a real conversion workspace where they can upload files, preview the result, and export the converted output directly from the browser.
+
+Why I built this:
+I wanted to build a project that felt closer to a real product than a starter app. This site let me work on browser-side file handling, document and media conversion flows, error handling, and a more polished interface that shows both frontend and practical product thinking.
 
 Key features:
 - Convert CSV, JSON, Markdown, HTML, and plain text between multiple formats

@@ -1925,7 +1925,7 @@ function App() {
           </div>
           <p className="footer-stat">
             Built to grow from the current {SUPPORTED_CONVERSIONS.length} browser-first conversion
-            paths into a fuller hosted conversion service.
+            paths into a fuller hosted conversion service. Built by Henrik Makeri.
           </p>
         </footer>
       </div>
