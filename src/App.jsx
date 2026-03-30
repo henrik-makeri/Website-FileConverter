@@ -1759,14 +1759,6 @@ function App() {
                   ))}
                 </div>
               </div>
-
-              <div className="sidebar-panel muted-panel">
-                <p className="panel-label">Current limits</p>
-                <p>
-                  PDF extraction still depends on selectable text. Scanned PDFs, OCR, and broader
-                  media conversion remain the next layer to add.
-                </p>
-              </div>
             </aside>
 
             <section className="studio" aria-label="Format conversion studio">
