@@ -1,7 +1,8 @@
 import { startTransition, useEffect, useState } from 'react'
 import './App.css'
 
-const FORMAT_OPTIONS = [
+// keeping the format list near the top makes it easier to add or remove routes later
+const formatChoices = [
   { value: 'csv', label: 'CSV' },
   { value: 'json', label: 'JSON' },
   { value: 'markdown', label: 'Markdown' },
@@ -16,12 +17,14 @@ const FORMAT_OPTIONS = [
   { value: 'mp3', label: 'MP3' },
 ]
 
-const BINARY_SOURCE_FORMATS = new Set(['docx', 'pdf', 'jpg', 'png', 'webp', 'mp4', 'mp3'])
-const DOCUMENT_TARGET_FORMATS = new Set(['docx', 'pdf'])
-const IMAGE_FORMATS = new Set(['jpg', 'png', 'webp'])
-const AUDIO_VIDEO_FORMATS = new Set(['mp4', 'mp3'])
+// these quick lookup sets are doing enough for now, I'll likely split them out once the app grows more
+const binaryInputFormats = new Set(['docx', 'pdf', 'jpg', 'png', 'webp', 'mp4', 'mp3'])
+const downloadDocFormats = new Set(['docx', 'pdf'])
+const browserImageFormats = new Set(['jpg', 'png', 'webp'])
+const mediaFormatTypes = new Set(['mp4', 'mp3'])
 
-const FORMAT_EXTENSIONS = {
+// extension and mime lookups are a little repetitive, but having them explicit has been less error-prone
+const fileExtensionsByFormat = {
   csv: 'csv',
   json: 'json',
   markdown: 'md',
@@ -36,7 +39,7 @@ const FORMAT_EXTENSIONS = {
   mp3: 'mp3',
 }
 
-const MIME_TYPES = {
+const mimeTypesByFormat = {
   csv: 'text/csv;charset=utf-8',
   json: 'application/json;charset=utf-8',
   markdown: 'text/markdown;charset=utf-8',
@@ -49,7 +52,8 @@ const MIME_TYPES = {
   mp3: 'audio/mpeg',
 }
 
-const SUPPORTED_CONVERSIONS = [
+//main source of truth for what the browser can handle right now
+const supportedRoutes = [
   { from: 'csv', to: 'json' },
   { from: 'csv', to: 'pdf' },
   { from: 'csv', to: 'docx' },
@@ -87,7 +91,8 @@ const SUPPORTED_CONVERSIONS = [
   { from: 'mp4', to: 'mp3' },
 ]
 
-const FEATURED_RECIPES = [
+// featured routes for guiding people
+const featuredRoutes = [
   {
     id: 'jpg-pdf',
     from: 'jpg',
@@ -167,7 +172,8 @@ const FEATURED_RECIPES = [
   },
 ]
 
-const SAMPLE_INPUTS = {
+// demo content gives the page something useful to show before anyone uploads a file
+const demoInputs = {
   csv: `name,email,plan
 Harper,harper@northstar.io,Pro
 Mina,mina@northstar.io,Starter
@@ -206,7 +212,7 @@ Send the customer email.
 Update the status page.`,
 }
 
-const FEATURE_PANELS = [
+const featurePanels = [
   {
     eyebrow: 'Private by default',
     title: 'Runs in the browser',
@@ -224,7 +230,7 @@ const FEATURE_PANELS = [
   },
 ]
 
-const STEPS = [
+const howItWorksSteps = [
   {
     number: '01',
     title: 'Paste or upload',
@@ -242,7 +248,7 @@ const STEPS = [
   },
 ]
 
-const VALUE_POINTS = [
+const valueProps = [
   {
     title: 'Focused format support',
     body: 'Built around practical document and text conversions instead of a generic placeholder feature list.',
@@ -261,7 +267,7 @@ const VALUE_POINTS = [
   },
 ]
 
-const DIRECTORY_GROUPS = [
+const toolDirectoryGroups = [
   {
     title: 'Video & Audio',
     description: 'A first browser-side media route is live, with broader audio and video support still planned.',
@@ -305,7 +311,7 @@ const DIRECTORY_GROUPS = [
   },
 ]
 
-const FOOTER_LINK_GROUPS = [
+const footerLinkGroups = [
   {
     title: 'Company',
     links: ['About', 'Security', 'Status'],
@@ -320,23 +326,24 @@ const FOOTER_LINK_GROUPS = [
   },
 ]
 
-let mammothLoader
-let pdfjsLoader
-let docxLoader
-let jsPdfLoader
-let lameJsLoader
+// lazy loaders keep the first page load lighter; later I may move these
+let cachedMammothPromise
+let cachedPdfJsPromise
+let cachedDocxPromise
+let cachedJsPdfPromise
+let cachedLamePromise
 
-async function loadMammoth() {
-  if (!mammothLoader) {
-    mammothLoader = import('mammoth').then((module) => module.default ?? module)
+async function getMammothLib() {
+  if (!cachedMammothPromise) {
+    cachedMammothPromise = import('mammoth').then((module) => module.default ?? module)
   }
 
-  return mammothLoader
+  return cachedMammothPromise
 }
 
-async function loadPdfJs() {
-  if (!pdfjsLoader) {
-    pdfjsLoader = Promise.all([
+async function getPdfJsLib() {
+  if (!cachedPdfJsPromise) {
+    cachedPdfJsPromise = Promise.all([
       import('pdfjs-dist'),
       import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
     ]).then(([pdfjsModule, workerModule]) => {
@@ -346,34 +353,35 @@ async function loadPdfJs() {
     })
   }
 
-  return pdfjsLoader
+  return cachedPdfJsPromise
 }
 
-async function loadDocx() {
-  if (!docxLoader) {
-    docxLoader = import('docx')
+async function getDocxLib() {
+  if (!cachedDocxPromise) {
+    cachedDocxPromise = import('docx')
   }
 
-  return docxLoader
+  return cachedDocxPromise
 }
 
-async function loadJsPdf() {
-  if (!jsPdfLoader) {
-    jsPdfLoader = import('jspdf').then((module) => module.jsPDF)
+async function getJsPdfLib() {
+  if (!cachedJsPdfPromise) {
+    cachedJsPdfPromise = import('jspdf').then((module) => module.jsPDF)
   }
 
-  return jsPdfLoader
+  return cachedJsPdfPromise
 }
 
-async function loadLameJs() {
-  if (!lameJsLoader) {
-    lameJsLoader = import('lamejs').then((module) => module.default ?? module)
+async function getLameLib() {
+  if (!cachedLamePromise) {
+    cachedLamePromise = import('lamejs').then((module) => module.default ?? module)
   }
 
-  return lameJsLoader
+  return cachedLamePromise
 }
 
-function escapeHtml(value) {
+// small helper, but it gets reused enough to keep it standalone
+function escapeHtmlBits(value) {
   return value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -382,7 +390,8 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;')
 }
 
-function parseCsvLine(line) {
+// this CSV splitter is intentionally lightweight
+function splitCsvLine(line) {
   const values = []
   let current = ''
   let insideQuotes = false
@@ -415,7 +424,8 @@ function parseCsvLine(line) {
   return values
 }
 
-function csvToJson(input) {
+// simple CSV -> JSON path for the browser-side workflow
+function turnCsvIntoJson(input) {
   const lines = input
     .replaceAll('\r\n', '\n')
     .split('\n')
@@ -425,13 +435,13 @@ function csvToJson(input) {
     throw new Error('CSV input needs a header row and at least one data row.')
   }
 
-  const headers = parseCsvLine(lines[0]).map((header) => header.trim())
+  const headers = splitCsvLine(lines[0]).map((header) => header.trim())
 
   if (headers.some((header) => header === '')) {
     throw new Error('CSV headers cannot be empty.')
   }
 
-  const rows = lines.slice(1).map((line) => parseCsvLine(line))
+  const rows = lines.slice(1).map((line) => splitCsvLine(line))
   const data = rows.map((row) =>
     headers.reduce((record, header, index) => {
       record[header] = row[index] ?? ''
@@ -442,7 +452,7 @@ function csvToJson(input) {
   return JSON.stringify(data, null, 2)
 }
 
-function flattenObject(value, prefix = '', result = {}) {
+function flattenNestedObject(value, prefix = '', result = {}) {
   if (value === null || value === undefined) {
     result[prefix] = ''
     return result
@@ -455,13 +465,13 @@ function flattenObject(value, prefix = '', result = {}) {
 
   Object.entries(value).forEach(([key, nestedValue]) => {
     const nestedKey = prefix ? `${prefix}.${key}` : key
-    flattenObject(nestedValue, nestedKey, result)
+    flattenNestedObject(nestedValue, nestedKey, result)
   })
 
   return result
 }
 
-function escapeCsvValue(value) {
+function escapeCsvCell(value) {
   const stringValue = String(value ?? '')
 
   if (/[",\n]/.test(stringValue)) {
@@ -471,7 +481,8 @@ function escapeCsvValue(value) {
   return stringValue
 }
 
-function jsonToCsv(input) {
+// flattening JSON into CSV
+function turnJsonIntoCsv(input) {
   let parsed
 
   try {
@@ -490,28 +501,29 @@ function jsonToCsv(input) {
     throw new Error('JSON to CSV needs an object or an array of objects.')
   }
 
-  const flattenedRows = rows.map((row) => flattenObject(row))
+  const flattenedRows = rows.map((row) => flattenNestedObject(row))
   const headers = [...new Set(flattenedRows.flatMap((row) => Object.keys(row)))]
 
   const csvRows = [
     headers.join(','),
     ...flattenedRows.map((row) =>
-      headers.map((header) => escapeCsvValue(row[header] ?? '')).join(','),
+      headers.map((header) => escapeCsvCell(row[header] ?? '')).join(','),
     ),
   ]
 
   return csvRows.join('\n')
 }
 
-function formatInlineMarkdown(text) {
-  return escapeHtml(text)
+function renderInlineMarkdown(text) {
+  return escapeHtmlBits(text)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
 }
 
-function markdownToHtml(input) {
+// markdown support
+function turnMarkdownIntoHtml(input) {
   const lines = input.replaceAll('\r\n', '\n').split('\n')
   const fragments = []
   const paragraph = []
@@ -525,7 +537,7 @@ function markdownToHtml(input) {
       return
     }
 
-    fragments.push(`<p>${formatInlineMarkdown(paragraph.join(' '))}</p>`)
+    fragments.push(`<p>${renderInlineMarkdown(paragraph.join(' '))}</p>`)
     paragraph.length = 0
   }
 
@@ -534,7 +546,7 @@ function markdownToHtml(input) {
       return
     }
 
-    fragments.push(`<blockquote><p>${formatInlineMarkdown(quote.join(' '))}</p></blockquote>`)
+    fragments.push(`<blockquote><p>${renderInlineMarkdown(quote.join(' '))}</p></blockquote>`)
     quote.length = 0
   }
 
@@ -556,7 +568,7 @@ function markdownToHtml(input) {
       closeList()
 
       if (insideCodeBlock) {
-        fragments.push(`<pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre>`)
+        fragments.push(`<pre><code>${escapeHtmlBits(codeBuffer.join('\n'))}</code></pre>`)
         codeBuffer = []
       }
 
@@ -583,7 +595,7 @@ function markdownToHtml(input) {
       flushQuote()
       closeList()
       const level = headingMatch[1].length
-      fragments.push(`<h${level}>${formatInlineMarkdown(headingMatch[2])}</h${level}>`)
+      fragments.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`)
       return
     }
 
@@ -608,7 +620,7 @@ function markdownToHtml(input) {
         fragments.push('<ol>')
       }
 
-      fragments.push(`<li>${formatInlineMarkdown(orderedMatch[1])}</li>`)
+      fragments.push(`<li>${renderInlineMarkdown(orderedMatch[1])}</li>`)
       return
     }
 
@@ -624,7 +636,7 @@ function markdownToHtml(input) {
         fragments.push('<ul>')
       }
 
-      fragments.push(`<li>${formatInlineMarkdown(unorderedMatch[1])}</li>`)
+      fragments.push(`<li>${renderInlineMarkdown(unorderedMatch[1])}</li>`)
       return
     }
 
@@ -644,7 +656,7 @@ function markdownToHtml(input) {
   return fragments.join('\n')
 }
 
-function inlineHtmlToMarkdown(node) {
+function inlineNodeToMarkdown(node) {
   if (node.nodeType === Node.TEXT_NODE) {
     return node.textContent?.replace(/\s+/g, ' ') ?? ''
   }
@@ -654,7 +666,7 @@ function inlineHtmlToMarkdown(node) {
   }
 
   const content = Array.from(node.childNodes)
-    .map((child) => inlineHtmlToMarkdown(child))
+    .map((child) => inlineNodeToMarkdown(child))
     .join('')
 
   switch (node.tagName.toLowerCase()) {
@@ -678,7 +690,7 @@ function inlineHtmlToMarkdown(node) {
   }
 }
 
-function blockHtmlToMarkdown(node, orderedIndex = 1) {
+function blockNodeToMarkdown(node, orderedIndex = 1) {
   if (node.nodeType === Node.TEXT_NODE) {
     return node.textContent?.replace(/\s+/g, ' ') ?? ''
   }
@@ -689,7 +701,7 @@ function blockHtmlToMarkdown(node, orderedIndex = 1) {
 
   const tagName = node.tagName.toLowerCase()
   const inlineContent = Array.from(node.childNodes)
-    .map((child) => inlineHtmlToMarkdown(child))
+    .map((child) => inlineNodeToMarkdown(child))
     .join('')
     .trim()
 
@@ -721,13 +733,13 @@ function blockHtmlToMarkdown(node, orderedIndex = 1) {
     case 'ul': {
       const items = Array.from(node.children)
         .filter((child) => child.tagName.toLowerCase() === 'li')
-        .map((child) => `- ${inlineHtmlToMarkdown(child).trim()}`)
+        .map((child) => `- ${inlineNodeToMarkdown(child).trim()}`)
       return `${items.join('\n')}\n\n`
     }
     case 'ol': {
       const items = Array.from(node.children)
         .filter((child) => child.tagName.toLowerCase() === 'li')
-        .map((child, index) => `${orderedIndex + index}. ${inlineHtmlToMarkdown(child).trim()}`)
+        .map((child, index) => `${orderedIndex + index}. ${inlineNodeToMarkdown(child).trim()}`)
       return `${items.join('\n')}\n\n`
     }
     case 'li':
@@ -738,38 +750,39 @@ function blockHtmlToMarkdown(node, orderedIndex = 1) {
     case 'div':
     case 'body':
       return `${Array.from(node.childNodes)
-        .map((child) => blockHtmlToMarkdown(child))
+        .map((child) => blockNodeToMarkdown(child))
         .join('')}\n`
     default:
       return `${inlineContent}\n\n`
   }
 }
 
-function cleanupMarkdown(input) {
+function tidyMarkdown(input) {
   return input
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
 
-function htmlToMarkdown(input) {
+// HTML, markdown still leans pragmatic over perfect, which is enough imo
+function turnHtmlIntoMarkdown(input) {
   const parser = new DOMParser()
   const document = parser.parseFromString(input, 'text/html')
   const markdown = Array.from(document.body.childNodes)
-    .map((node) => blockHtmlToMarkdown(node))
+    .map((node) => blockNodeToMarkdown(node))
     .join('')
 
-  return cleanupMarkdown(markdown)
+  return tidyMarkdown(markdown)
 }
 
-function htmlToText(input) {
+function pullTextFromHtml(input) {
   const parser = new DOMParser()
   const document = parser.parseFromString(input, 'text/html')
 
   return document.body.textContent?.replace(/\n{3,}/g, '\n\n').trim() ?? ''
 }
 
-function textToHtml(input) {
+function turnPlainTextIntoHtml(input) {
   const paragraphs = input
     .replaceAll('\r\n', '\n')
     .split(/\n\s*\n/)
@@ -781,11 +794,11 @@ function textToHtml(input) {
   }
 
   return paragraphs
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll('\n', '<br />')}</p>`)
+    .map((paragraph) => `<p>${escapeHtmlBits(paragraph).replaceAll('\n', '<br />')}</p>`)
     .join('\n')
 }
 
-function plainTextToMarkdown(input) {
+function turnPlainTextIntoMarkdown(input) {
   return input
     .replaceAll('\r\n', '\n')
     .split(/\n\s*\n/)
@@ -794,18 +807,18 @@ function plainTextToMarkdown(input) {
     .join('\n\n')
 }
 
-function buildCodeBlockMarkdown(language, input) {
+function wrapAsCodeBlockMarkdown(language, input) {
   return `\`\`\`${language}\n${input.trim()}\n\`\`\``
 }
 
-function buildPreformattedHtml(title, input) {
+function buildPreformattedPreviewHtml(title, input) {
   return `<article>
-  <h1>${escapeHtml(title)}</h1>
-  <pre>${escapeHtml(input.trim())}</pre>
+  <h1>${escapeHtmlBits(title)}</h1>
+  <pre>${escapeHtmlBits(input.trim())}</pre>
 </article>`
 }
 
-function formatBytes(byteLength) {
+function formatByteSize(byteLength) {
   if (!byteLength) {
     return '0 B'
   }
@@ -817,16 +830,16 @@ function formatBytes(byteLength) {
   return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
 }
 
-function getObjectUrlFromBytes(sourceBytes, mimeType) {
-  return URL.createObjectURL(new Blob([sourceBytes], { type: mimeType }))
+function createObjectUrlFromBytes(uploadedBytes, mimeType) {
+  return URL.createObjectURL(new Blob([uploadedBytes], { type: mimeType }))
 }
 
-function inferImageMimeType(format) {
-  return MIME_TYPES[format] || 'application/octet-stream'
+function guessImageMimeType(format) {
+  return mimeTypesByFormat[format] || 'application/octet-stream'
 }
 
-async function loadImageFromBytes(sourceBytes, format) {
-  const objectUrl = getObjectUrlFromBytes(sourceBytes, inferImageMimeType(format))
+async function loadBrowserImageFromBytes(uploadedBytes, format) {
+  const objectUrl = createObjectUrlFromBytes(uploadedBytes, guessImageMimeType(format))
 
   try {
     const image = await new Promise((resolve, reject) => {
@@ -842,8 +855,8 @@ async function loadImageFromBytes(sourceBytes, format) {
   }
 }
 
-async function getImageMetadata(sourceBytes, format) {
-  const image = await loadImageFromBytes(sourceBytes, format)
+async function readImageMetadata(uploadedBytes, format) {
+  const image = await loadBrowserImageFromBytes(uploadedBytes, format)
 
   return {
     width: image.naturalWidth,
@@ -851,8 +864,8 @@ async function getImageMetadata(sourceBytes, format) {
   }
 }
 
-async function convertImageBlob(sourceBytes, sourceFormat, targetFormat) {
-  const image = await loadImageFromBytes(sourceBytes, sourceFormat)
+async function convertImageToBlob(uploadedBytes, sourceKind, targetKind) {
+  const image = await loadBrowserImageFromBytes(uploadedBytes, sourceKind)
   const canvas = document.createElement('canvas')
   canvas.width = image.naturalWidth
   canvas.height = image.naturalHeight
@@ -862,7 +875,7 @@ async function convertImageBlob(sourceBytes, sourceFormat, targetFormat) {
     throw new Error('Canvas is not available in this browser.')
   }
 
-  if (targetFormat === 'jpg') {
+  if (targetKind === 'jpg') {
     context.fillStyle = '#ffffff'
     context.fillRect(0, 0, canvas.width, canvas.height)
   }
@@ -877,12 +890,12 @@ async function convertImageBlob(sourceBytes, sourceFormat, targetFormat) {
       }
 
       resolve(blob)
-    }, inferImageMimeType(targetFormat), targetFormat === 'jpg' ? 0.92 : undefined)
+    }, guessImageMimeType(targetKind), targetKind === 'jpg' ? 0.92 : undefined)
   })
 }
 
-async function getVideoMetadata(sourceBytes) {
-  const objectUrl = getObjectUrlFromBytes(sourceBytes, MIME_TYPES.mp4)
+async function readVideoMetadata(uploadedBytes) {
+  const objectUrl = createObjectUrlFromBytes(uploadedBytes, mimeTypesByFormat.mp4)
   const video = document.createElement('video')
 
   try {
@@ -905,7 +918,7 @@ async function getVideoMetadata(sourceBytes) {
   }
 }
 
-function formatDuration(seconds) {
+function formatPlaybackTime(seconds) {
   if (!seconds) {
     return '0:00'
   }
@@ -916,7 +929,7 @@ function formatDuration(seconds) {
   return `${minutes}:${remainingSeconds}`
 }
 
-function float32ToInt16(float32Array) {
+function convertFloat32ToInt16(float32Array) {
   const int16Array = new Int16Array(float32Array.length)
 
   for (let index = 0; index < float32Array.length; index += 1) {
@@ -927,8 +940,8 @@ function float32ToInt16(float32Array) {
   return int16Array
 }
 
-async function convertMp4ToMp3Blob(sourceBytes) {
-  const lamejs = await loadLameJs()
+async function convertMp4IntoMp3Blob(uploadedBytes) {
+  const lamejs = await getLameLib()
   const AudioContextClass = window.AudioContext || window.webkitAudioContext
 
   if (!AudioContextClass) {
@@ -938,7 +951,7 @@ async function convertMp4ToMp3Blob(sourceBytes) {
   const audioContext = new AudioContextClass()
 
   try {
-    const audioBuffer = await audioContext.decodeAudioData(sourceBytes.slice().buffer)
+    const audioBuffer = await audioContext.decodeAudioData(uploadedBytes.slice().buffer)
     const channelCount = Math.min(audioBuffer.numberOfChannels, 2)
     const encoder = new lamejs.Mp3Encoder(channelCount, audioBuffer.sampleRate, 128)
     const leftChannel = audioBuffer.getChannelData(0)
@@ -947,10 +960,10 @@ async function convertMp4ToMp3Blob(sourceBytes) {
     const mp3Chunks = []
 
     for (let index = 0; index < leftChannel.length; index += blockSize) {
-      const leftChunk = float32ToInt16(leftChannel.subarray(index, index + blockSize))
+      const leftChunk = convertFloat32ToInt16(leftChannel.subarray(index, index + blockSize))
       const encodedChunk =
         channelCount > 1 && rightChannel
-          ? encoder.encodeBuffer(leftChunk, float32ToInt16(rightChannel.subarray(index, index + blockSize)))
+          ? encoder.encodeBuffer(leftChunk, convertFloat32ToInt16(rightChannel.subarray(index, index + blockSize)))
           : encoder.encodeBuffer(leftChunk)
 
       if (encodedChunk.length) {
@@ -964,7 +977,7 @@ async function convertMp4ToMp3Blob(sourceBytes) {
       mp3Chunks.push(new Uint8Array(flushChunk))
     }
 
-    return new Blob(mp3Chunks, { type: MIME_TYPES.mp3 })
+    return new Blob(mp3Chunks, { type: mimeTypesByFormat.mp3 })
   } catch (error) {
     console.error('MP4 to MP3 conversion error:', error)
     throw new Error('This MP4 file could not be converted to MP3 in the browser.')
@@ -973,9 +986,9 @@ async function convertMp4ToMp3Blob(sourceBytes) {
   }
 }
 
-async function extractPdfText(sourceBytes) {
-  const pdfjs = await loadPdfJs()
-  const loadingTask = pdfjs.getDocument({ data: sourceBytes.slice() })
+async function pullTextOutOfPdf(uploadedBytes) {
+  const pdfjs = await getPdfJsLib()
+  const loadingTask = pdfjs.getDocument({ data: uploadedBytes.slice() })
   const pdf = await loadingTask.promise
   const pages = []
 
@@ -1014,35 +1027,36 @@ async function extractPdfText(sourceBytes) {
   return pages.join('\n\n')
 }
 
-async function buildRichContent(sourceFormat, inputText, sourceBytes) {
-  const trimmedInput = inputText.trim()
+// converter normalizing each source into one snapshot object
+async function buildSourceContentSnapshot(sourceKind, inputValue, uploadedBytes) {
+  const trimmedInput = inputValue.trim()
 
-  if (sourceFormat === 'docx') {
-    if (!sourceBytes) {
+  if (sourceKind === 'docx') {
+    if (!uploadedBytes) {
       return null
     }
 
-    const mammoth = await loadMammoth()
-    const arrayBuffer = sourceBytes.slice().buffer
+    const mammoth = await getMammothLib()
+    const arrayBuffer = uploadedBytes.slice().buffer
 
     const [htmlResult, textResult] = await Promise.all([
       mammoth.convertToHtml({ arrayBuffer }),
-      mammoth.extractRawText({ arrayBuffer: sourceBytes.slice().buffer }),
+      mammoth.extractRawText({ arrayBuffer: uploadedBytes.slice().buffer }),
     ])
 
     const html = htmlResult.value.trim()
-    const text = textResult.value.trim() || htmlToText(html)
-    const markdown = html ? htmlToMarkdown(html) : plainTextToMarkdown(text)
+    const text = textResult.value.trim() || pullTextFromHtml(html)
+    const markdown = html ? turnHtmlIntoMarkdown(html) : turnPlainTextIntoMarkdown(text)
 
     return { text, html, markdown }
   }
 
-  if (sourceFormat === 'pdf') {
-    if (!sourceBytes) {
+  if (sourceKind === 'pdf') {
+    if (!uploadedBytes) {
       return null
     }
 
-    const text = (await extractPdfText(sourceBytes)).trim()
+    const text = (await pullTextOutOfPdf(uploadedBytes)).trim()
 
     if (!text) {
       throw new Error('This PDF did not expose readable text. Scanned PDFs usually need OCR.')
@@ -1050,37 +1064,37 @@ async function buildRichContent(sourceFormat, inputText, sourceBytes) {
 
     return {
       text,
-      html: textToHtml(text),
-      markdown: plainTextToMarkdown(text),
+      html: turnPlainTextIntoHtml(text),
+      markdown: turnPlainTextIntoMarkdown(text),
     }
   }
 
-  if (IMAGE_FORMATS.has(sourceFormat)) {
-    if (!sourceBytes) {
+  if (browserImageFormats.has(sourceKind)) {
+    if (!uploadedBytes) {
       return null
     }
 
-    const metadata = await getImageMetadata(sourceBytes, sourceFormat)
+    const metadata = await readImageMetadata(uploadedBytes, sourceKind)
 
     return {
-      text: `${getFormatLabel(sourceFormat)} image loaded\n${metadata.width} x ${metadata.height}px\n${formatBytes(sourceBytes.byteLength)}`,
-      imageFormat: sourceFormat,
-      sourceBytes,
+      text: `${getFormatLabel(sourceKind)} image loaded\n${metadata.width} x ${metadata.height}px\n${formatByteSize(uploadedBytes.byteLength)}`,
+      imageFormat: sourceKind,
+      uploadedBytes,
       ...metadata,
     }
   }
 
-  if (sourceFormat === 'mp4') {
-    if (!sourceBytes) {
+  if (sourceKind === 'mp4') {
+    if (!uploadedBytes) {
       return null
     }
 
-    const metadata = await getVideoMetadata(sourceBytes)
+    const metadata = await readVideoMetadata(uploadedBytes)
 
     return {
-      text: `MP4 video loaded\nDuration ${formatDuration(metadata.duration)}\n${metadata.width} x ${metadata.height}px\n${formatBytes(sourceBytes.byteLength)}`,
-      mediaFormat: sourceFormat,
-      sourceBytes,
+      text: `MP4 video loaded\nDuration ${formatPlaybackTime(metadata.duration)}\n${metadata.width} x ${metadata.height}px\n${formatByteSize(uploadedBytes.byteLength)}`,
+      mediaFormat: sourceKind,
+      uploadedBytes,
       ...metadata,
     }
   }
@@ -1089,92 +1103,92 @@ async function buildRichContent(sourceFormat, inputText, sourceBytes) {
     return null
   }
 
-  if (sourceFormat === 'csv') {
+  if (sourceKind === 'csv') {
     return {
       text: trimmedInput,
-      html: buildPreformattedHtml('CSV preview', trimmedInput),
-      markdown: buildCodeBlockMarkdown('csv', trimmedInput),
+      html: buildPreformattedPreviewHtml('CSV preview', trimmedInput),
+      markdown: wrapAsCodeBlockMarkdown('csv', trimmedInput),
     }
   }
 
-  if (sourceFormat === 'json') {
+  if (sourceKind === 'json') {
     return {
       text: trimmedInput,
-      html: buildPreformattedHtml('JSON preview', trimmedInput),
-      markdown: buildCodeBlockMarkdown('json', trimmedInput),
+      html: buildPreformattedPreviewHtml('JSON preview', trimmedInput),
+      markdown: wrapAsCodeBlockMarkdown('json', trimmedInput),
     }
   }
 
-  if (sourceFormat === 'markdown') {
-    const html = markdownToHtml(inputText)
+  if (sourceKind === 'markdown') {
+    const html = turnMarkdownIntoHtml(inputValue)
 
     return {
-      text: htmlToText(html),
+      text: pullTextFromHtml(html),
       html,
-      markdown: cleanupMarkdown(inputText),
+      markdown: tidyMarkdown(inputValue),
     }
   }
 
-  if (sourceFormat === 'html') {
+  if (sourceKind === 'html') {
     return {
-      text: htmlToText(inputText),
+      text: pullTextFromHtml(inputValue),
       html: trimmedInput,
-      markdown: htmlToMarkdown(inputText),
+      markdown: turnHtmlIntoMarkdown(inputValue),
     }
   }
 
-  if (sourceFormat === 'txt') {
+  if (sourceKind === 'txt') {
     return {
       text: trimmedInput,
-      html: textToHtml(inputText),
-      markdown: plainTextToMarkdown(inputText),
+      html: turnPlainTextIntoHtml(inputValue),
+      markdown: turnPlainTextIntoMarkdown(inputValue),
     }
   }
 
   return null
 }
 
-function convertToTextTarget(sourceFormat, targetFormat, inputText, richContent) {
-  if (sourceFormat === 'csv' && targetFormat === 'json') {
-    return csvToJson(inputText)
+function buildTextPreviewForTarget(sourceKind, targetKind, inputValue, contentSnapshot) {
+  if (sourceKind === 'csv' && targetKind === 'json') {
+    return turnCsvIntoJson(inputValue)
   }
 
-  if (sourceFormat === 'json' && targetFormat === 'csv') {
-    return jsonToCsv(inputText)
+  if (sourceKind === 'json' && targetKind === 'csv') {
+    return turnJsonIntoCsv(inputValue)
   }
 
-  if (targetFormat === 'txt') {
-    return richContent.text
+  if (targetKind === 'txt') {
+    return contentSnapshot.text
   }
 
-  if (IMAGE_FORMATS.has(targetFormat)) {
-    return `${richContent.text}\n\nOutput will be generated as ${getFormatLabel(targetFormat)}.`
+  if (browserImageFormats.has(targetKind)) {
+    return `${contentSnapshot.text}\n\nOutput will be generated as ${getFormatLabel(targetKind)}.`
   }
 
-  if (targetFormat === 'html') {
-    return richContent.html
+  if (targetKind === 'html') {
+    return contentSnapshot.html
   }
 
-  if (targetFormat === 'markdown') {
-    return richContent.markdown
+  if (targetKind === 'markdown') {
+    return contentSnapshot.markdown
   }
 
-  if (targetFormat === 'pdf' || targetFormat === 'docx') {
-    if (richContent.imageFormat) {
-      return `${richContent.text}\n\nOutput will be packaged as a PDF document.`
+  if (targetKind === 'pdf' || targetKind === 'docx') {
+    if (contentSnapshot.imageFormat) {
+      return `${contentSnapshot.text}\n\nOutput will be packaged as a PDF document.`
     }
 
-    return richContent.text
+    return contentSnapshot.text
   }
 
-  if (targetFormat === 'mp3') {
-    return `${richContent.text}\n\nAudio will be extracted and encoded as MP3 during download.`
+  if (targetKind === 'mp3') {
+    return `${contentSnapshot.text}\n\nAudio will be extracted and encoded as MP3 during download.`
   }
 
   throw new Error('That conversion path is not supported yet.')
 }
 
-function markdownToDocxParagraphs(markdown, docxModule) {
+function markdownBlocksToDocxParagraphs(markdown, docxModule) {
   const { HeadingLevel, Paragraph } = docxModule
   const blocks = markdown
     .replaceAll('\r\n', '\n')
@@ -1226,14 +1240,15 @@ function markdownToDocxParagraphs(markdown, docxModule) {
   })
 }
 
-async function buildDocxBlob(richContent) {
-  const docxModule = await loadDocx()
+//can restyle later
+async function buildDocxDownloadBlob(contentSnapshot) {
+  const docxModule = await getDocxLib()
   const { Document, Packer } = docxModule
-  const markdown = richContent.markdown || plainTextToMarkdown(richContent.text)
+  const markdown = contentSnapshot.markdown || turnPlainTextIntoMarkdown(contentSnapshot.text)
   const document = new Document({
     sections: [
       {
-        children: markdownToDocxParagraphs(markdown, docxModule),
+        children: markdownBlocksToDocxParagraphs(markdown, docxModule),
       },
     ],
   })
@@ -1241,11 +1256,12 @@ async function buildDocxBlob(richContent) {
   return Packer.toBlob(document)
 }
 
-async function buildPdfBlob(richContent) {
-  const jsPDF = await loadJsPdf()
+// PDF output is intentionally straightforward at the moment beung readable first
+async function buildPdfDownloadBlob(contentSnapshot) {
+  const jsPDF = await getJsPdfLib()
 
-  if (richContent.imageFormat && richContent.sourceBytes) {
-    const image = await loadImageFromBytes(richContent.sourceBytes, richContent.imageFormat)
+  if (contentSnapshot.imageFormat && contentSnapshot.uploadedBytes) {
+    const image = await loadBrowserImageFromBytes(contentSnapshot.uploadedBytes, contentSnapshot.imageFormat)
     const canvas = document.createElement('canvas')
     canvas.width = image.naturalWidth
     canvas.height = image.naturalHeight
@@ -1286,7 +1302,7 @@ async function buildPdfBlob(richContent) {
   const pageHeight = pdf.internal.pageSize.getHeight()
   const margin = 48
   const lineHeight = 18
-  const text = richContent.text || ' '
+  const text = contentSnapshot.text || ' '
   const lines = pdf.splitTextToSize(text, pageWidth - margin * 2)
   let cursorY = margin
 
@@ -1306,7 +1322,7 @@ async function buildPdfBlob(richContent) {
   return pdf.output('blob')
 }
 
-function triggerDownload(blob, fileName) {
+function downloadBlobFile(blob, fileName) {
   const downloadUrl = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = downloadUrl
@@ -1321,7 +1337,7 @@ function triggerDownload(blob, fileName) {
   }
 }
 
-function inferFormatFromFileName(fileName) {
+function guessFormatFromFileName(fileName) {
   const extension = fileName.split('.').pop()?.toLowerCase()
 
   if (!extension) {
@@ -1336,71 +1352,72 @@ function inferFormatFromFileName(fileName) {
     return 'jpg'
   }
 
-  return FORMAT_OPTIONS.find((format) => format.value === extension)?.value ?? ''
+  return formatChoices.find((format) => format.value === extension)?.value ?? ''
 }
 
-function getAvailableTargets(sourceFormat) {
-  return SUPPORTED_CONVERSIONS.filter((recipe) => recipe.from === sourceFormat).map((recipe) => recipe.to)
+function getTargetsForSource(sourceKind) {
+  return supportedRoutes.filter((recipe) => recipe.from === sourceKind).map((recipe) => recipe.to)
 }
 
-function getDefaultTarget(sourceFormat) {
-  return getAvailableTargets(sourceFormat)[0] ?? ''
+function getDefaultTargetForSource(sourceKind) {
+  return getTargetsForSource(sourceKind)[0] ?? ''
 }
 
 function getFormatLabel(formatValue) {
-  return FORMAT_OPTIONS.find((option) => option.value === formatValue)?.label ?? formatValue
+  return formatChoices.find((option) => option.value === formatValue)?.label ?? formatValue
 }
 
-function getSourceDisplayValue(sourceFormat, uploadedFileName) {
-  if (!BINARY_SOURCE_FORMATS.has(sourceFormat)) {
+function getSourceTextareaValue(sourceKind, uploadedName) {
+  if (!binaryInputFormats.has(sourceKind)) {
     return null
   }
 
-  if (uploadedFileName) {
-    return `Loaded ${uploadedFileName}.
+  if (uploadedName) {
+    return `Loaded ${uploadedName}.
 
 This source stays as a binary file, and the converter prepares the output client-side before building the download.`
   }
 
-  if (IMAGE_FORMATS.has(sourceFormat)) {
-    return `Upload a ${getFormatLabel(sourceFormat)} file to start.
+  if (browserImageFormats.has(sourceKind)) {
+    return `Upload a ${getFormatLabel(sourceKind)} file to start.
 
 Image routes currently support JPG, PNG, and WEBP conversions plus image-to-PDF packaging.`
   }
 
-  if (sourceFormat === 'mp4') {
+  if (sourceKind === 'mp4') {
     return `Upload an MP4 file to start.
 
 The browser will decode the audio track locally and encode it as MP3 during download.`
   }
 
-  return `Upload a ${getFormatLabel(sourceFormat)} file to start.
+  return `Upload a ${getFormatLabel(sourceKind)} file to start.
 
 PDF extraction works best on text-based PDFs. Scanned PDFs usually need OCR before they can be converted reliably.`
 }
 
+// this component carries a lot right now, but keeping it together has made it faster to iterate while the product shape is still moving
 function App() {
-  const [sourceFormat, setSourceFormat] = useState('csv')
-  const [targetFormat, setTargetFormat] = useState('json')
-  const [inputText, setInputText] = useState(SAMPLE_INPUTS.csv)
-  const [sourceBytes, setSourceBytes] = useState(null)
-  const [uploadedFileName, setUploadedFileName] = useState('')
-  const [uploadError, setUploadError] = useState('')
-  const [conversionPreview, setConversionPreview] = useState('')
-  const [richContent, setRichContent] = useState(null)
-  const [conversionError, setConversionError] = useState('')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
+  const [sourceKind, setSourceFormat] = useState('csv')
+  const [targetKind, setTargetFormat] = useState('json')
+  const [inputValue, setInputText] = useState(demoInputs.csv)
+  const [uploadedBytes, setSourceBytes] = useState(null)
+  const [uploadedName, setUploadedFileName] = useState('')
+  const [fileLoadError, setUploadError] = useState('')
+  const [previewValue, setConversionPreview] = useState('')
+  const [contentSnapshot, setRichContent] = useState(null)
+  const [conversionIssue, setConversionError] = useState('')
+  const [isConverting, setIsProcessing] = useState(false)
+  const [isPreparingDownload, setIsDownloading] = useState(false)
 
-  const availableTargets = getAvailableTargets(sourceFormat)
-  const activeRecipeId = `${sourceFormat}-${targetFormat}`
-  const isBinarySource = BINARY_SOURCE_FORMATS.has(sourceFormat)
-  const isDocumentTarget = DOCUMENT_TARGET_FORMATS.has(targetFormat)
-  const displayedInputValue = isBinarySource
-    ? getSourceDisplayValue(sourceFormat, uploadedFileName)
-    : inputText
-  const errorMessage = uploadError || conversionError
-  const debounceMs = sourceBytes && isBinarySource ? 300 : 0
+  const targetOptions = getTargetsForSource(sourceKind)
+  const activeRouteId = `${sourceKind}-${targetKind}`
+  const isBinaryInput = binaryInputFormats.has(sourceKind)
+  const isDocumentDownload = downloadDocFormats.has(targetKind)
+  const shownInputValue = isBinaryInput
+    ? getSourceTextareaValue(sourceKind, uploadedName)
+    : inputValue
+  const activeErrorMessage = fileLoadError || conversionIssue
+  const previewDelayMs = uploadedBytes && isBinaryInput ? 300 : 0
 
   useEffect(() => {
     let cancelled = false
@@ -1411,7 +1428,7 @@ function App() {
           setIsProcessing(true)
         }
 
-        const nextRichContent = await buildRichContent(sourceFormat, inputText, sourceBytes)
+        const nextRichContent = await buildSourceContentSnapshot(sourceKind, inputValue, uploadedBytes)
 
         if (!nextRichContent) {
           if (!cancelled) {
@@ -1423,7 +1440,7 @@ function App() {
           return
         }
 
-        const nextPreview = convertToTextTarget(sourceFormat, targetFormat, inputText, nextRichContent)
+        const nextPreview = buildTextPreviewForTarget(sourceKind, targetKind, inputValue, nextRichContent)
 
         if (!cancelled) {
           setRichContent(nextRichContent)
@@ -1441,25 +1458,27 @@ function App() {
           setIsProcessing(false)
         }
       }
-    }, debounceMs)
+    }, previewDelayMs)
 
     return () => {
       cancelled = true
       window.clearTimeout(timerId)
     }
-  }, [debounceMs, inputText, sourceBytes, sourceFormat, targetFormat])
+  }, [previewDelayMs, inputValue, uploadedBytes, sourceKind, targetKind])
 
-  function resetErrors() {
+  // keeping error cleanup in one place
+  function clearErrors() {
     setUploadError('')
     setConversionError('')
   }
 
-  function switchSource(nextSource, nextTarget, options = {}) {
-    const nextInput = options.inputText ?? SAMPLE_INPUTS[nextSource] ?? ''
-    const nextFileName = options.uploadedFileName ?? ''
-    const nextSourceBytes = options.sourceBytes ?? null
+  // centralizing source changes
+  function applySourceChange(nextSource, nextTarget, options = {}) {
+    const nextInput = options.inputValue ?? demoInputs[nextSource] ?? ''
+    const nextFileName = options.uploadedName ?? ''
+    const nextSourceBytes = options.uploadedBytes ?? null
 
-    resetErrors()
+    clearErrors()
     setSourceFormat(nextSource)
     setTargetFormat(nextTarget)
     setUploadedFileName(nextFileName)
@@ -1470,83 +1489,84 @@ function App() {
     })
   }
 
-  function handleSourceChange(nextSource) {
-    const nextTargets = getAvailableTargets(nextSource)
-    const nextTarget = nextTargets.includes(targetFormat) ? targetFormat : nextTargets[0]
-    switchSource(nextSource, nextTarget, {
-      inputText: BINARY_SOURCE_FORMATS.has(nextSource) ? '' : SAMPLE_INPUTS[nextSource] ?? '',
+  function onSourceChange(nextSource) {
+    const nextTargets = getTargetsForSource(nextSource)
+    const nextTarget = nextTargets.includes(targetKind) ? targetKind : nextTargets[0]
+    applySourceChange(nextSource, nextTarget, {
+      inputValue: binaryInputFormats.has(nextSource) ? '' : demoInputs[nextSource] ?? '',
     })
   }
 
-  function handleRecipeSelect(recipe) {
-    switchSource(recipe.from, recipe.to, {
-      inputText: BINARY_SOURCE_FORMATS.has(recipe.from) ? '' : SAMPLE_INPUTS[recipe.from] ?? '',
+  function onRouteSelect(recipe) {
+    applySourceChange(recipe.from, recipe.to, {
+      inputValue: binaryInputFormats.has(recipe.from) ? '' : demoInputs[recipe.from] ?? '',
     })
   }
 
-  function handleDirectorySelect(item) {
+  function onDirectoryItemSelect(item) {
     if (item.status !== 'live') {
       return
     }
 
-    handleRecipeSelect(item)
+    onRouteSelect(item)
     document.getElementById('workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  function handleResetInput() {
-    if (isBinarySource) {
-      switchSource(sourceFormat, targetFormat, {
-        inputText: '',
+  function onResetInput() {
+    if (isBinaryInput) {
+      applySourceChange(sourceKind, targetKind, {
+        inputValue: '',
       })
       return
     }
 
-    resetErrors()
+    clearErrors()
     setUploadedFileName('')
     setSourceBytes(null)
     startTransition(() => {
-      setInputText(SAMPLE_INPUTS[sourceFormat] ?? '')
+      setInputText(demoInputs[sourceKind] ?? '')
     })
   }
 
-  async function handleDownload() {
-    if (!richContent || !conversionPreview) {
+  // download logic is a bit long, but each branch is explicit and that has been easier to maintain so far
+  async function onDownload() {
+    if (!contentSnapshot || !previewValue) {
       return
     }
 
     setIsDownloading(true)
 
     try {
-      const baseName = uploadedFileName
-        ? uploadedFileName.replace(/\.[^.]+$/, '')
-        : `${sourceFormat}-converted`
+      const baseName = uploadedName
+        ? uploadedName.replace(/\.[^.]+$/, '')
+        : `${sourceKind}-converted`
 
-      if (targetFormat === 'docx') {
-        const blob = await buildDocxBlob(richContent)
-        triggerDownload(blob, `${baseName}.docx`)
+      if (targetKind === 'docx') {
+        const blob = await buildDocxDownloadBlob(contentSnapshot)
+        downloadBlobFile(blob, `${baseName}.docx`)
         return
       }
 
-      if (targetFormat === 'pdf') {
-        const blob = await buildPdfBlob(richContent)
-        triggerDownload(blob, `${baseName}.pdf`)
+      if (targetKind === 'pdf') {
+        const blob = await buildPdfDownloadBlob(contentSnapshot)
+        downloadBlobFile(blob, `${baseName}.pdf`)
         return
       }
 
-      if (IMAGE_FORMATS.has(targetFormat) && richContent.sourceBytes) {
-        const blob = await convertImageBlob(richContent.sourceBytes, sourceFormat, targetFormat)
-        triggerDownload(blob, `${baseName}.${FORMAT_EXTENSIONS[targetFormat]}`)
+      if (browserImageFormats.has(targetKind) && contentSnapshot.uploadedBytes) {
+        const blob = await convertImageToBlob(contentSnapshot.uploadedBytes, sourceKind, targetKind)
+        downloadBlobFile(blob, `${baseName}.${fileExtensionsByFormat[targetKind]}`)
         return
       }
 
-      if (targetFormat === 'mp3' && richContent.sourceBytes) {
-        const blob = await convertMp4ToMp3Blob(richContent.sourceBytes)
-        triggerDownload(blob, `${baseName}.mp3`)
+      if (targetKind === 'mp3' && contentSnapshot.uploadedBytes) {
+        const blob = await convertMp4IntoMp3Blob(contentSnapshot.uploadedBytes)
+        downloadBlobFile(blob, `${baseName}.mp3`)
         return
       }
 
-      const blob = new Blob([conversionPreview], { type: MIME_TYPES[targetFormat] })
-      triggerDownload(blob, `${baseName}.${FORMAT_EXTENSIONS[targetFormat]}`)
+      const blob = new Blob([previewValue], { type: mimeTypesByFormat[targetKind] })
+      downloadBlobFile(blob, `${baseName}.${fileExtensionsByFormat[targetKind]}`)
     } catch (error) {
       setConversionError(error.message || 'Download failed. Please try again.')
     } finally {
@@ -1554,34 +1574,34 @@ function App() {
     }
   }
 
-  function handleFileUpload(event) {
+  function onFileUpload(event) {
     const file = event.target.files?.[0]
 
     if (!file) {
       return
     }
 
-    const inferredFormat = inferFormatFromFileName(file.name)
-    const nextSource = inferredFormat || sourceFormat
-    const nextTargets = getAvailableTargets(nextSource)
-    const nextTarget = nextTargets.includes(targetFormat) ? targetFormat : getDefaultTarget(nextSource)
+    const inferredFormat = guessFormatFromFileName(file.name)
+    const nextSource = inferredFormat || sourceKind
+    const nextTargets = getTargetsForSource(nextSource)
+    const nextTarget = nextTargets.includes(targetKind) ? targetKind : getDefaultTargetForSource(nextSource)
     const reader = new FileReader()
 
-    resetErrors()
+    clearErrors()
 
     reader.onload = () => {
-      if (BINARY_SOURCE_FORMATS.has(nextSource)) {
-        switchSource(nextSource, nextTarget, {
-          inputText: '',
-          uploadedFileName: file.name,
-          sourceBytes:
+      if (binaryInputFormats.has(nextSource)) {
+        applySourceChange(nextSource, nextTarget, {
+          inputValue: '',
+          uploadedName: file.name,
+          uploadedBytes:
             reader.result instanceof ArrayBuffer ? new Uint8Array(reader.result).slice() : null,
         })
       } else {
-        switchSource(nextSource, nextTarget, {
-          inputText: typeof reader.result === 'string' ? reader.result : '',
-          uploadedFileName: file.name,
-          sourceBytes: null,
+        applySourceChange(nextSource, nextTarget, {
+          inputValue: typeof reader.result === 'string' ? reader.result : '',
+          uploadedName: file.name,
+          uploadedBytes: null,
         })
       }
     }
@@ -1592,7 +1612,7 @@ function App() {
       setUploadError('That file could not be read. Try another file or a supported text-based upload.')
     }
 
-    if (BINARY_SOURCE_FORMATS.has(nextSource)) {
+    if (binaryInputFormats.has(nextSource)) {
       reader.readAsArrayBuffer(file)
     } else {
       reader.readAsText(file)
@@ -1601,6 +1621,7 @@ function App() {
     event.target.value = ''
   }
 
+  // UI is still in one file for now; can break it out later if needed
   return (
     <main className="site-shell">
       <section className="hero-shell">
@@ -1642,12 +1663,12 @@ function App() {
                 <span className="hero-inline-label">convert</span>
                 <select
                   className="hero-select"
-                  value={sourceFormat}
-                  onChange={(event) => handleSourceChange(event.target.value)}
+                  value={sourceKind}
+                  onChange={(event) => onSourceChange(event.target.value)}
                   aria-label="Source format"
                 >
-                  {FORMAT_OPTIONS.filter((option) =>
-                    SUPPORTED_CONVERSIONS.some((recipe) => recipe.from === option.value),
+                  {formatChoices.filter((option) =>
+                    supportedRoutes.some((recipe) => recipe.from === option.value),
                   ).map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -1657,14 +1678,14 @@ function App() {
                 <span className="hero-inline-label">to</span>
                 <select
                   className="hero-select"
-                  value={targetFormat}
+                  value={targetKind}
                   onChange={(event) => {
-                    resetErrors()
+                    clearErrors()
                     setTargetFormat(event.target.value)
                   }}
                   aria-label="Target format"
                 >
-                  {availableTargets.map((format) => (
+                  {targetOptions.map((format) => (
                     <option key={format} value={format}>
                       {getFormatLabel(format)}
                     </option>
@@ -1676,11 +1697,11 @@ function App() {
             <div className="hero-panel">
               <div className="hero-panel-metrics">
                 <article className="metric-card">
-                  <strong>{FORMAT_OPTIONS.length}</strong>
+                  <strong>{formatChoices.length}</strong>
                   <span>formats live today</span>
                 </article>
                 <article className="metric-card">
-                  <strong>{SUPPORTED_CONVERSIONS.length}</strong>
+                  <strong>{supportedRoutes.length}</strong>
                   <span>available conversion paths</span>
                 </article>
                 <article className="metric-card">
@@ -1700,9 +1721,9 @@ function App() {
           </section>
 
           <label className="hero-upload-cta">
-            <input type="file" onChange={handleFileUpload} />
+            <input type="file" onChange={onFileUpload} />
             <span className="cta-main">
-              {uploadedFileName ? `Selected: ${uploadedFileName}` : 'Select File'}
+              {uploadedName ? `Selected: ${uploadedName}` : 'Select File'}
             </span>
             <span className="cta-meta">
               Supports documents, browser-friendly images, and MP4 to MP3 extraction
@@ -1714,7 +1735,7 @@ function App() {
       <div className="page-shell page-content">
         <section className="directory-section" id="directory">
           <div className="directory-grid">
-            {DIRECTORY_GROUPS.map((group) => (
+            {toolDirectoryGroups.map((group) => (
               <article className="directory-column" key={group.title}>
                 <div className="directory-head">
                   <h2>{group.title}</h2>
@@ -1726,10 +1747,10 @@ function App() {
                     <button
                       key={item.label}
                       className={`directory-link ${item.status === 'live' ? 'live' : 'planned'} ${
-                        item.from && item.to && activeRecipeId === `${item.from}-${item.to}` ? 'active' : ''
+                        item.from && item.to && activeRouteId === `${item.from}-${item.to}` ? 'active' : ''
                       }`}
                       type="button"
-                      onClick={() => handleDirectorySelect(item)}
+                      onClick={() => onDirectoryItemSelect(item)}
                     >
                       <span>{item.label}</span>
                       <small>{item.status === 'live' ? 'Available now' : 'Planned'}</small>
@@ -1748,7 +1769,7 @@ function App() {
               <h2>Preview and export your conversion.</h2>
             </div>
             <span className="status-pill">
-              {isDownloading ? 'Building file...' : isProcessing ? 'Converting...' : 'Ready'}
+              {isPreparingDownload ? 'Building file...' : isConverting ? 'Converting...' : 'Ready'}
             </span>
           </div>
 
@@ -1757,12 +1778,12 @@ function App() {
               <div className="sidebar-panel">
                 <p className="panel-label">Popular routes</p>
                 <div className="recipe-list" aria-label="Suggested conversion recipes">
-                  {FEATURED_RECIPES.map((recipe) => (
+                  {featuredRoutes.map((recipe) => (
                     <button
                       key={recipe.id}
-                      className={`recipe-chip ${activeRecipeId === recipe.id ? 'active' : ''}`}
+                      className={`recipe-chip ${activeRouteId === recipe.id ? 'active' : ''}`}
                       type="button"
-                      onClick={() => handleRecipeSelect(recipe)}
+                      onClick={() => onRouteSelect(recipe)}
                     >
                       <strong>{recipe.title}</strong>
                       <span>{recipe.description}</span>
@@ -1776,9 +1797,9 @@ function App() {
               <div className="control-grid">
                 <label className="field">
                   <span>From</span>
-                  <select value={sourceFormat} onChange={(event) => handleSourceChange(event.target.value)}>
-                    {FORMAT_OPTIONS.filter((option) =>
-                      SUPPORTED_CONVERSIONS.some((recipe) => recipe.from === option.value),
+                  <select value={sourceKind} onChange={(event) => onSourceChange(event.target.value)}>
+                    {formatChoices.filter((option) =>
+                      supportedRoutes.some((recipe) => recipe.from === option.value),
                     ).map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -1790,13 +1811,13 @@ function App() {
                 <label className="field">
                   <span>To</span>
                   <select
-                    value={targetFormat}
+                    value={targetKind}
                     onChange={(event) => {
-                      resetErrors()
+                      clearErrors()
                       setTargetFormat(event.target.value)
                     }}
                   >
-                    {availableTargets.map((format) => (
+                    {targetOptions.map((format) => (
                       <option key={format} value={format}>
                         {getFormatLabel(format)}
                       </option>
@@ -1806,9 +1827,9 @@ function App() {
               </div>
 
               <label className="upload-panel">
-                <input type="file" onChange={handleFileUpload} />
+                <input type="file" onChange={onFileUpload} />
                 <span className="panel-label">Upload a file</span>
-                <strong>{uploadedFileName || 'Choose a source file for this conversion'}</strong>
+                <strong>{uploadedName || 'Choose a source file for this conversion'}</strong>
                 <span>
                   DOCX uploads are parsed in-browser. Image routes support JPG, PNG, and WEBP.
                   PDF uploads still work best when the source already contains selectable text.
@@ -1819,63 +1840,63 @@ function App() {
                 <label className="editor-panel">
                   <span className="panel-label">Input</span>
                   <textarea
-                    value={displayedInputValue}
+                    value={shownInputValue}
                     onChange={(event) => {
-                      if (isBinarySource) {
+                      if (isBinaryInput) {
                         return
                       }
 
-                      resetErrors()
+                      clearErrors()
                       setUploadedFileName('')
                       setSourceBytes(null)
                       setInputText(event.target.value)
                     }}
-                    readOnly={isBinarySource}
+                    readOnly={isBinaryInput}
                     spellCheck="false"
-                    aria-label={`${getFormatLabel(sourceFormat)} input`}
+                    aria-label={`${getFormatLabel(sourceKind)} input`}
                   />
                 </label>
 
                 <label className="editor-panel">
                   <span className="panel-label">
-                    {isDocumentTarget ? `${getFormatLabel(targetFormat)} export preview` : 'Output'}
+                    {isDocumentDownload ? `${getFormatLabel(targetKind)} export preview` : 'Output'}
                   </span>
                   <textarea
-                    value={conversionPreview}
+                    value={previewValue}
                     readOnly
                     spellCheck="false"
-                    aria-label={`${getFormatLabel(targetFormat)} output`}
+                    aria-label={`${getFormatLabel(targetKind)} output`}
                   />
                 </label>
               </div>
 
               <div className="studio-footer">
-                <button className="secondary-button" type="button" onClick={handleResetInput}>
-                  {isBinarySource
-                    ? `Reset ${getFormatLabel(sourceFormat)} upload`
-                    : `Load ${getFormatLabel(sourceFormat)} example`}
+                <button className="secondary-button" type="button" onClick={onResetInput}>
+                  {isBinaryInput
+                    ? `Reset ${getFormatLabel(sourceKind)} upload`
+                    : `Load ${getFormatLabel(sourceKind)} example`}
                 </button>
                 <button
                   className="primary-button"
                   type="button"
-                  onClick={handleDownload}
-                  disabled={!conversionPreview || isProcessing || isDownloading}
+                  onClick={onDownload}
+                  disabled={!previewValue || isConverting || isPreparingDownload}
                 >
-                  {isDownloading ? 'Preparing file...' : `Download ${getFormatLabel(targetFormat)}`}
+                  {isPreparingDownload ? 'Preparing file...' : `Download ${getFormatLabel(targetKind)}`}
                 </button>
               </div>
 
-              {errorMessage ? <p className="feedback error">{errorMessage}</p> : null}
-              {!errorMessage && !conversionPreview ? (
+              {activeErrorMessage ? <p className="feedback error">{activeErrorMessage}</p> : null}
+              {!activeErrorMessage && !previewValue ? (
                 <p className="feedback">
-                  {isBinarySource
-                    ? `Upload a ${getFormatLabel(sourceFormat)} file to generate output.`
+                  {isBinaryInput
+                    ? `Upload a ${getFormatLabel(sourceKind)} file to generate output.`
                     : 'Paste content or upload a supported file to generate output.'}
                 </p>
               ) : null}
-              {!errorMessage && conversionPreview && isDocumentTarget ? (
+              {!activeErrorMessage && previewValue && isDocumentDownload ? (
                 <p className="feedback">
-                  The preview shows the text content that will be packaged into the downloaded {getFormatLabel(targetFormat)} file.
+                  The preview shows the text content that will be packaged into the downloaded {getFormatLabel(targetKind)} file.
                 </p>
               ) : null}
             </section>
@@ -1884,7 +1905,7 @@ function App() {
 
         <section className="highlights-section" id="highlights">
           <div className="value-grid">
-            {VALUE_POINTS.map((point) => (
+            {valueProps.map((point) => (
               <article className="value-card" key={point.title}>
                 <h3>{point.title}</h3>
                 <p>{point.body}</p>
@@ -1900,7 +1921,7 @@ function App() {
           </div>
 
           <div className="steps-grid">
-            {STEPS.map((step) => (
+            {howItWorksSteps.map((step) => (
               <article className="step-card" key={step.number}>
                 <span>{step.number}</span>
                 <h3>{step.title}</h3>
@@ -1912,7 +1933,7 @@ function App() {
 
         <footer className="footer-block" id="footer">
           <div className="footer-links">
-            {FOOTER_LINK_GROUPS.map((group) => (
+            {footerLinkGroups.map((group) => (
               <div key={group.title}>
                 <h3>{group.title}</h3>
                 {group.links.map((link) => (
@@ -1924,7 +1945,7 @@ function App() {
             ))}
           </div>
           <p className="footer-stat">
-            Built to grow from the current {SUPPORTED_CONVERSIONS.length} browser-first conversion
+            Built to grow from the current {supportedRoutes.length} browser-first conversion
             paths into a fuller hosted conversion service. Built by Henrik Makeri.
           </p>
         </footer>
