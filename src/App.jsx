@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useState } from 'react'
 import './App.css'
 
-// keeping the format list near the top makes it easier to add or remove routes later
+// format list
 const formatChoices = [
   { value: 'csv', label: 'CSV' },
   { value: 'json', label: 'JSON' },
@@ -17,13 +17,12 @@ const formatChoices = [
   { value: 'mp3', label: 'MP3' },
 ]
 
-// these quick lookup sets are doing enough for now, I'll likely split them out once the app grows more
+// lookups
 const binaryInputFormats = new Set(['docx', 'pdf', 'jpg', 'png', 'webp', 'mp4', 'mp3'])
 const downloadDocFormats = new Set(['docx', 'pdf'])
 const browserImageFormats = new Set(['jpg', 'png', 'webp'])
-const mediaFormatTypes = new Set(['mp4', 'mp3'])
 
-// extension and mime lookups are a little repetitive, but having them explicit has been less error-prone
+// extension and mime lookups
 const fileExtensionsByFormat = {
   csv: 'csv',
   json: 'json',
@@ -98,81 +97,81 @@ const featuredRoutes = [
     from: 'jpg',
     to: 'pdf',
     title: 'JPG to PDF',
-    description: 'Package a single image into a PDF without leaving the browser.',
+    description: 'Throw one image in and get a PDF out without opening anything else.',
   },
   {
     id: 'mp4-mp3',
     from: 'mp4',
     to: 'mp3',
     title: 'MP4 to MP3',
-    description: 'Extract the audio track from an uploaded MP4 and download it as MP3.',
+    description: 'Pull the audio out of an MP4 and keep just the MP3.',
   },
   {
     id: 'png-jpg',
     from: 'png',
     to: 'jpg',
     title: 'Image Converter',
-    description: 'Convert common browser-friendly image formats between JPG, PNG, and WEBP.',
+    description: 'Switch between JPG, PNG, and WEBP without doing anything fancy.',
   },
   {
     id: 'csv-json',
     from: 'csv',
     to: 'json',
     title: 'Spreadsheet to JSON',
-    description: 'Turn flat rows into structured data for APIs and internal tools.',
+    description: 'Turn rows and columns into something an app can actually use.',
   },
   {
     id: 'markdown-pdf',
     from: 'markdown',
     to: 'pdf',
     title: 'Notes to PDF',
-    description: 'Export release notes, briefs, and checklists as a document people can share.',
+    description: 'Good for notes, checklists, and stuff you just need to export fast.',
   },
   {
     id: 'html-docx',
     from: 'html',
     to: 'docx',
     title: 'HTML to DOCX',
-    description: 'Turn web copy into something teammates can edit in Word.',
+    description: 'Take web copy and make it editable in Word.',
   },
   {
     id: 'docx-html',
     from: 'docx',
     to: 'html',
     title: 'DOCX to HTML',
-    description: 'Extract browser-friendly markup from a Word document upload.',
+    description: 'Pull the useful bits out of a Word doc and turn them into HTML.',
   },
   {
     id: 'docx-markdown',
     from: 'docx',
     to: 'markdown',
     title: 'DOCX to Markdown',
-    description: 'Pull content out of Word and move it into docs workflows quickly.',
+    description: 'Useful when something starts in Word and needs to end up in docs.',
   },
   {
     id: 'pdf-txt',
     from: 'pdf',
     to: 'txt',
     title: 'PDF to text',
-    description: 'Extract readable text from text-based PDFs directly in the browser.',
+    description: 'Grab the readable text out of a PDF right in the browser.',
   },
   {
     id: 'pdf-docx',
     from: 'pdf',
     to: 'docx',
     title: 'PDF to DOCX',
-    description: 'Take extracted PDF text and repackage it into an editable Word file.',
+    description: 'Take PDF text and shove it back into something editable.',
   },
   {
     id: 'txt-docx',
     from: 'txt',
     to: 'docx',
     title: 'Plain text to DOCX',
-    description: 'Package notes, logs, and transcripts into a portable document file.',
+    description: 'Wrap plain text up into a proper document when you need to send it on.',
   },
 ]
 
-// demo content gives the page something useful to show before anyone uploads a file
+// something useful to show before anyone uploads a file
 const demoInputs = {
   csv: `name,email,plan
 Harper,harper@northstar.io,Pro
@@ -212,65 +211,47 @@ Send the customer email.
 Update the status page.`,
 }
 
-const featurePanels = [
-  {
-    eyebrow: 'Private by default',
-    title: 'Runs in the browser',
-    body: 'Text-based work stays client-side, including DOCX parsing and PDF text extraction for supported files.',
-  },
-  {
-    eyebrow: 'Useful on day one',
-    title: 'Covers more real workflows',
-    body: 'CSV, JSON, Markdown, HTML, TXT, DOCX, and PDF give the site a broader, more believable product surface.',
-  },
-  {
-    eyebrow: 'Built to grow',
-    title: 'Ready for heavier formats later',
-    body: 'The conversion flow now separates text extraction from export, which makes future media and office formats easier to add.',
-  },
-]
-
 const howItWorksSteps = [
   {
     number: '01',
     title: 'Paste or upload',
-    body: 'Text formats can be typed directly, while DOCX and PDF sources are loaded from file upload.',
+    body: 'If it is text, type or paste it. If it is a file, just upload it and let the app deal with it.',
   },
   {
     number: '02',
     title: 'Choose the target',
-    body: 'The target list is filtered by what each source format can actually produce in this version.',
+    body: 'You only get options that actually make sense for the format you started with.',
   },
   {
     number: '03',
     title: 'Preview and export',
-    body: 'Text outputs render directly, and PDF or DOCX targets generate real downloadable files on demand.',
+    body: 'Check the result first, then download it when it looks right.',
   },
 ]
 
 const valueProps = [
   {
     title: 'Focused format support',
-    body: 'Built around practical document and text conversions instead of a generic placeholder feature list.',
+    body: 'This is aimed at the kinds of conversions people actually run into, not a giant fake list.',
   },
   {
     title: 'Private for current workflows',
-    body: 'DOCX parsing, PDF text extraction, previewing, and export generation all run in the browser for supported flows.',
+    body: 'A lot of the current document workflow stays in the browser, which keeps it simple and fast.',
   },
   {
     title: 'Quality-first output',
-    body: 'The app previews extracted content before download so people can catch formatting problems early.',
+    body: 'You get a preview before download, which helps catch weird formatting before it becomes your problem.',
   },
   {
     title: 'Expandable foundation',
-    body: 'The format directory now includes browser-side document, image, and a first media workflow, with room for OCR and heavier pipelines later.',
+    body: 'There is room to grow this into something bigger later without rebuilding the whole thing.',
   },
 ]
 
 const toolDirectoryGroups = [
   {
     title: 'Video & Audio',
-    description: 'A first browser-side media route is live, with broader audio and video support still planned.',
+    description: 'Only one media route is live right now, but it covers a real use case instead of pretending everything works.',
     items: [
       { label: 'Video Converter', status: 'planned' },
       { label: 'Audio Converter', status: 'planned' },
@@ -283,7 +264,7 @@ const toolDirectoryGroups = [
   },
   {
     title: 'Image',
-    description: 'Browser-friendly image routes now work for JPG, PNG, WEBP, and PDF packaging.',
+    description: 'The image stuff here is the practical browser-friendly set: JPG, PNG, WEBP, and PDF packaging.',
     items: [
       { label: 'Image Converter', from: 'png', to: 'jpg', status: 'live' },
       { label: 'WEBP to PNG', from: 'webp', to: 'png', status: 'live' },
@@ -297,7 +278,7 @@ const toolDirectoryGroups = [
   },
   {
     title: 'PDF & Documents',
-    description: 'These routes are wired to the current browser-based document converter where possible.',
+    description: 'This is the part that feels the most complete right now, especially for document-heavy work.',
     items: [
       { label: 'PDF Converter', from: 'pdf', to: 'txt', status: 'live' },
       { label: 'Document Converter', from: 'docx', to: 'html', status: 'live' },
@@ -326,7 +307,7 @@ const footerLinkGroups = [
   },
 ]
 
-// lazy loaders keep the first page load lighter; later I may move these
+// lazy loaders keep the first page load lighter. later I may move these
 let cachedMammothPromise
 let cachedPdfJsPromise
 let cachedDocxPromise
@@ -390,7 +371,7 @@ function escapeHtmlBits(value) {
     .replaceAll("'", '&#39;')
 }
 
-// this CSV splitter is intentionally lightweight
+// CSV splitter
 function splitCsvLine(line) {
   const values = []
   let current = ''
@@ -424,7 +405,7 @@ function splitCsvLine(line) {
   return values
 }
 
-// simple CSV -> JSON path for the browser-side workflow
+// CSV -> JSON path for the browser-side workflow
 function turnCsvIntoJson(input) {
   const lines = input
     .replaceAll('\r\n', '\n')
@@ -481,7 +462,7 @@ function escapeCsvCell(value) {
   return stringValue
 }
 
-// flattening JSON into CSV
+// JSON into CSV
 function turnJsonIntoCsv(input) {
   let parsed
 
@@ -1256,7 +1237,7 @@ async function buildDocxDownloadBlob(contentSnapshot) {
   return Packer.toBlob(document)
 }
 
-// PDF output is intentionally straightforward at the moment beung readable first
+// PDF output
 async function buildPdfDownloadBlob(contentSnapshot) {
   const jsPDF = await getJsPdfLib()
 
@@ -1395,7 +1376,7 @@ The browser will decode the audio track locally and encode it as MP3 during down
 PDF extraction works best on text-based PDFs. Scanned PDFs usually need OCR before they can be converted reliably.`
 }
 
-// this component carries a lot right now, but keeping it together has made it faster to iterate while the product shape is still moving
+// this part is carrying a lot :D
 function App() {
   const [sourceKind, setSourceFormat] = useState('csv')
   const [targetKind, setTargetFormat] = useState('json')
@@ -1528,7 +1509,7 @@ function App() {
     })
   }
 
-  // download logic is a bit long, but each branch is explicit and that has been easier to maintain so far
+  // download logic is a bit long
   async function onDownload() {
     if (!contentSnapshot || !previewValue) {
       return
@@ -1621,7 +1602,7 @@ function App() {
     event.target.value = ''
   }
 
-  // UI is still in one file for now; can break it out later if needed
+  // UI is still in one file for now, can break it out later if needed
   return (
     <main className="site-shell">
       <section className="hero-shell">
@@ -1649,14 +1630,14 @@ function App() {
             <div className="hero-copy">
               <div className="eyebrow-row">
                 <span className="eyebrow">File converter</span>
-                <span className="eyebrow muted">Browser-based for current document workflows</span>
+                <span className="eyebrow muted">Built around the formats people actually bump into</span>
               </div>
 
-              <h1>Convert the file you have into the format you actually need.</h1>
+              <h1>Take the file you already have and turn it into something more useful.</h1>
               <p className="hero-body">
-                Convert common text, PDF, and document formats directly in the browser. Use the
-                quick controls for the main conversion flow, then drop into the workspace for
-                previewing, editing, and downloading.
+                This is a browser-first converter for the everyday annoying stuff:
+                PDFs, DOCX files, plain text, images, and the odd MP4 to MP3 job. Pick a route,
+                check the preview, and download the result without overthinking it.
               </p>
 
               <div className="hero-inline-form">
@@ -1713,8 +1694,8 @@ function App() {
               <div className="hero-panel-note">
                 <p className="panel-label">Current strength</p>
                 <p>
-                  Best for document-heavy conversions where people want a quick preview before they
-                  download the result.
+                  It is strongest when the job is a little messy and you want to see the output
+                  before you commit to downloading it.
                 </p>
               </div>
             </div>
@@ -1723,10 +1704,10 @@ function App() {
           <label className="hero-upload-cta">
             <input type="file" onChange={onFileUpload} />
             <span className="cta-main">
-              {uploadedName ? `Selected: ${uploadedName}` : 'Select File'}
+              {uploadedName ? `Picked: ${uploadedName}` : 'Pick a file'}
             </span>
             <span className="cta-meta">
-              Supports documents, browser-friendly images, and MP4 to MP3 extraction
+              Documents, browser-friendly images, and one very handy MP4 to MP3 route
             </span>
           </label>
         </div>
@@ -1766,7 +1747,7 @@ function App() {
           <div className="workspace-header">
             <div>
               <p className="section-kicker">Workspace</p>
-              <h2>Preview and export your conversion.</h2>
+              <h2>See the result, tweak if needed, then download it.</h2>
             </div>
             <span className="status-pill">
               {isPreparingDownload ? 'Building file...' : isConverting ? 'Converting...' : 'Ready'}
@@ -1829,10 +1810,10 @@ function App() {
               <label className="upload-panel">
                 <input type="file" onChange={onFileUpload} />
                 <span className="panel-label">Upload a file</span>
-                <strong>{uploadedName || 'Choose a source file for this conversion'}</strong>
+                <strong>{uploadedName || 'Drop in the file you want to work with'}</strong>
                 <span>
-                  DOCX uploads are parsed in-browser. Image routes support JPG, PNG, and WEBP.
-                  PDF uploads still work best when the source already contains selectable text.
+                  DOCX gets parsed in-browser. Image routes work with JPG, PNG, and WEBP. PDFs
+                  still behave best when the text is actually selectable.
                 </span>
               </label>
 
@@ -1873,8 +1854,8 @@ function App() {
               <div className="studio-footer">
                 <button className="secondary-button" type="button" onClick={onResetInput}>
                   {isBinaryInput
-                    ? `Reset ${getFormatLabel(sourceKind)} upload`
-                    : `Load ${getFormatLabel(sourceKind)} example`}
+                    ? `Start over with ${getFormatLabel(sourceKind)}`
+                    : `Load a ${getFormatLabel(sourceKind)} example`}
                 </button>
                 <button
                   className="primary-button"
@@ -1890,13 +1871,13 @@ function App() {
               {!activeErrorMessage && !previewValue ? (
                 <p className="feedback">
                   {isBinaryInput
-                    ? `Upload a ${getFormatLabel(sourceKind)} file to generate output.`
-                    : 'Paste content or upload a supported file to generate output.'}
+                    ? `Upload a ${getFormatLabel(sourceKind)} file and the output will show up here.`
+                    : 'Paste something in or upload a supported file to get started.'}
                 </p>
               ) : null}
               {!activeErrorMessage && previewValue && isDocumentDownload ? (
                 <p className="feedback">
-                  The preview shows the text content that will be packaged into the downloaded {getFormatLabel(targetKind)} file.
+                  This preview is the text that will get packed into the downloaded {getFormatLabel(targetKind)} file.
                 </p>
               ) : null}
             </section>
@@ -1917,7 +1898,7 @@ function App() {
         <section className="section-block">
           <div className="section-heading">
             <p className="section-kicker">How it works</p>
-            <h2>A practical flow for real file conversion tasks.</h2>
+            <h2>Nothing clever. Just a simple conversion flow that does the job.</h2>
           </div>
 
           <div className="steps-grid">
@@ -1946,7 +1927,7 @@ function App() {
           </div>
           <p className="footer-stat">
             Built to grow from the current {supportedRoutes.length} browser-first conversion
-            paths into a fuller hosted conversion service. Built by Henrik Makeri.
+            paths into something bigger later. Built by Henrik Makeri.
           </p>
         </footer>
       </div>
