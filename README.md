@@ -8,10 +8,10 @@ Live demo:
 ![Website-FileConverter preview](./docs/website-preview.png)
 
 Overview:
-Website-FileConverter is a portfolio project focused on practical in-browser conversion workflows. Instead of a placeholder landing page, it gives users a real conversion workspace where they can upload files, preview the result, and export the converted output directly from the browser.
+Website-FileConverter is a portfolio project focused on practical in-browser conversion workflows. It gives users a real conversion workspace where they can upload files and preview the result in the browser.
 
 Why I built this:
-I wanted to make something real for my first project and have a finished website I could actually show people. This gave me a chance to build something more than a basic starter app while learning how to handle file uploads, conversions, and a more polished interface.
+I wanted to make something real for my first project and have a finished website I could actually show people.
 
 Key features:
 - Convert CSV, JSON, Markdown, HTML, and plain text between multiple formats

@@ -251,13 +251,13 @@ const valueProps = [
 const toolDirectoryGroups = [
   {
     title: 'Video & Audio',
-    description: 'Only one media route is live right now, but it covers a real use case instead of pretending everything works.',
+    description: 'A few media entry points now lead into the MP4 to MP3 workflow, while the broader audio and video tools are still planned.',
     items: [
       { label: 'Video Converter', status: 'planned' },
       { label: 'Audio Converter', status: 'planned' },
-      { label: 'MP3 Converter', status: 'planned' },
+      { label: 'MP3 Converter', from: 'mp4', to: 'mp3', status: 'live' },
       { label: 'MP4 to MP3', from: 'mp4', to: 'mp3', status: 'live' },
-      { label: 'Video to MP3', status: 'planned' },
+      { label: 'Video to MP3', from: 'mp4', to: 'mp3', status: 'live' },
       { label: 'MOV to MP4', status: 'planned' },
       { label: 'MP3 to OGG', status: 'planned' },
     ],
