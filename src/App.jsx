@@ -361,7 +361,7 @@ async function getLameLib() {
   return cachedLamePromise
 }
 
-// small helper, but it gets reused enough to keep it standalone
+// small helper
 function escapeHtmlBits(value) {
   return value
     .replaceAll('&', '&amp;')
@@ -405,7 +405,7 @@ function splitCsvLine(line) {
   return values
 }
 
-// CSV -> JSON path for the browser-side workflow
+// CSV -> JSON
 function turnCsvIntoJson(input) {
   const lines = input
     .replaceAll('\r\n', '\n')
@@ -1509,7 +1509,7 @@ function App() {
     })
   }
 
-  // download logic is a bit long
+  // download logic
   async function onDownload() {
     if (!contentSnapshot || !previewValue) {
       return
@@ -1602,7 +1602,7 @@ function App() {
     event.target.value = ''
   }
 
-  // UI is still in one file for now, can break it out later if needed
+  // UI
   return (
     <main className="site-shell">
       <section className="hero-shell">
