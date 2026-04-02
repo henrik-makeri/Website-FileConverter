@@ -7,9 +7,6 @@ Live demo:
 
 ![Website-FileConverter preview](./docs/website-preview.png)
 
-Overview:
-Website-FileConverter is a portfolio project focused on practical in-browser conversion workflows. It gives users a real conversion workspace where they can upload files and preview the result in the browser.
-
 Why I built this:
 I wanted to make something real for my first project and have a finished website I could actually show people.
 

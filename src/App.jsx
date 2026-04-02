@@ -1662,10 +1662,6 @@ function App() {
                   <span>formats live today</span>
                 </article>
                 <article className="metric-card">
-                  <strong>{supportedRoutes.length}</strong>
-                  <span>available conversion paths</span>
-                </article>
-                <article className="metric-card">
                   <strong>Docs</strong>
                   <span>PDF and DOCX workflows included</span>
                 </article>
