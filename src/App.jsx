@@ -235,8 +235,8 @@ const toolDirectoryGroups = [
     title: 'Video & Audio',
     description: 'A few media entry points now lead into the MP4 to MP3 workflow, while the broader audio and video tools are still planned.',
     items: [
-      { label: 'Video Converter', status: 'planned' },
-      { label: 'Audio Converter', status: 'planned' },
+      { label: 'Video Converter', from: 'mp4', to: 'mp3', status: 'live' },
+      { label: 'Audio Converter', from: 'mp4', to: 'mp3', status: 'live' },
       { label: 'MP3 Converter', from: 'mp4', to: 'mp3', status: 'live' },
       { label: 'MP4 to MP3', from: 'mp4', to: 'mp3', status: 'live' },
       { label: 'Video to MP3', from: 'mp4', to: 'mp3', status: 'live' },
