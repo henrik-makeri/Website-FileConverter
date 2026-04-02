@@ -214,19 +214,19 @@ Update the status page.`,
 const valueProps = [
   {
     title: 'Focused format support',
-    body: 'This is aimed at the kinds of conversions people actually run into, not a giant fake list.',
+    body: 'Built around a smaller set of conversions that are actually useful.',
   },
   {
     title: 'Private for current workflows',
-    body: 'A lot of the current document workflow stays in the browser, which keeps it simple and fast.',
+    body: 'Most of the current document flow stays in the browser.',
   },
   {
     title: 'Quality-first output',
-    body: 'You get a preview before download, which helps catch weird formatting before it becomes your problem.',
+    body: 'You can preview the result before downloading it.',
   },
   {
     title: 'Expandable foundation',
-    body: 'There is room to grow this into something bigger later without rebuilding the whole thing.',
+    body: 'The current setup leaves room to add more formats later.',
   },
 ]
 
@@ -1614,11 +1614,10 @@ function App() {
                 <span className="eyebrow">File converter</span>
               </div>
 
-              <h1>Take the file you already have and turn it into something more useful.</h1>
+              <h1>Convert your file.</h1>
               <p className="hero-body">
-                This is a browser-first converter for the everyday annoying stuff:
-                PDFs, DOCX files, plain text, images, and the odd MP4 to MP3 job. Pick a route,
-                check the preview, and download the result without overthinking it.
+                This is a browser-first converter for:
+                PDFs, DOCX files, plain text, images, and the odd MP4 to MP3 job.
               </p>
 
               <div className="hero-inline-form">
