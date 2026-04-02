@@ -10,6 +10,9 @@ Live demo:
 Why I built this:
 I wanted to make something real for my first project and have a finished website I could actually show people.
 
+Small note:
+The MP4 to MP3 part works, but bigger files can still feel a bit slow in the browser. I left it in anyway because it is useful, even if it is not perfect yet.
+
 Key features:
 - Convert CSV, JSON, Markdown, HTML, and plain text between multiple formats
 - Parse DOCX uploads in the browser and export to TXT, HTML, Markdown, PDF, and DOCX workflows
