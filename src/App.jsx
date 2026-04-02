@@ -1572,7 +1572,7 @@ function App() {
     reader.onerror = () => {
       setUploadedFileName('')
       setSourceBytes(null)
-      setUploadError('That file could not be read. Try another file or a supported text-based upload.')
+      setUploadError('That file could not be read. Try another file or check the format.')
     }
 
     if (binaryInputFormats.has(nextSource)) {
