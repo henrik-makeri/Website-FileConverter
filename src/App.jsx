@@ -211,24 +211,6 @@ Send the customer email.
 Update the status page.`,
 }
 
-const howItWorksSteps = [
-  {
-    number: '01',
-    title: 'Paste or upload',
-    body: 'If it is text, type or paste it. If it is a file, just upload it and let the app deal with it.',
-  },
-  {
-    number: '02',
-    title: 'Choose the target',
-    body: 'You only get options that actually make sense for the format you started with.',
-  },
-  {
-    number: '03',
-    title: 'Preview and export',
-    body: 'Check the result first, then download it when it looks right.',
-  },
-]
-
 const valueProps = [
   {
     title: 'Focused format support',
@@ -1630,7 +1612,6 @@ function App() {
             <div className="hero-copy">
               <div className="eyebrow-row">
                 <span className="eyebrow">File converter</span>
-                <span className="eyebrow muted">Built around the formats people actually bump into</span>
               </div>
 
               <h1>Take the file you already have and turn it into something more useful.</h1>
@@ -1691,13 +1672,6 @@ function App() {
                 </article>
               </div>
 
-              <div className="hero-panel-note">
-                <p className="panel-label">Current strength</p>
-                <p>
-                  It is strongest when the job is a little messy and you want to see the output
-                  before you commit to downloading it.
-                </p>
-              </div>
             </div>
           </section>
 
@@ -1890,23 +1864,6 @@ function App() {
               <article className="value-card" key={point.title}>
                 <h3>{point.title}</h3>
                 <p>{point.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="section-block">
-          <div className="section-heading">
-            <p className="section-kicker">How it works</p>
-            <h2>Nothing clever. Just a simple conversion flow that does the job.</h2>
-          </div>
-
-          <div className="steps-grid">
-            {howItWorksSteps.map((step) => (
-              <article className="step-card" key={step.number}>
-                <span>{step.number}</span>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
               </article>
             ))}
           </div>
