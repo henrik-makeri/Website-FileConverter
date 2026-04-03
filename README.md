@@ -22,5 +22,3 @@ Built with:
 - React
 - Vite
 - A few browser-side libraries for PDFs, DOCX files, and MP3 export
-
-I kept it as a small React app and only added extra libraries when I needed them for specific file types.
