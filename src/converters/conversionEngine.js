@@ -27,7 +27,7 @@ import {
   readVideoMetadata,
 } from './fileConverters'
 
-// This file turns different inputs into one shared "content snapshot" shape.
+// This file turns different inputs into one shared shape (snapshot)
 export async function buildSourceContentSnapshot(sourceKind, inputValue, uploadedBytes) {
   const trimmedInput = inputValue.trim()
 
@@ -236,7 +236,7 @@ function markdownBlocksToDocxParagraphs(markdown, docxModule) {
   })
 }
 
-// Downloads branch here so the hook can stay mostly about state.
+// downloads branch here
 export async function buildDocxDownloadBlob(contentSnapshot) {
   const docxModule = await getDocxLib()
   const { Document, Packer } = docxModule
