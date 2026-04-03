@@ -7,6 +7,7 @@ import {
 } from './converterData'
 import { useConverter } from './hooks/useConverter'
 
+// App just wires the page layout to the converter hook.
 function App() {
   const {
     activeErrorMessage,
@@ -127,6 +128,7 @@ function App() {
       </section>
 
       <div className="page-shell page-content">
+        {/* quick routes up top, full editor below */}
         <section className="directory-section" id="directory">
           <div className="directory-grid">
             {toolDirectoryGroups.map((group) => (
