@@ -8,7 +8,7 @@ Live demo:
 ![Website-FileConverter preview](./docs/website-preview.png)
 
 Why I built this:
-I wanted to make something real for my first project and have a finished website I could actually show people.
+I wanted to make something real and have a finished website I could actually show people. It started smaller and got broader as I kept adding things to it.
 
 Small note:
 The MP4 to MP3 part works, but bigger files can still feel a bit slow in the browser. I left it in anyway because it is useful, even if it is not perfect yet.
