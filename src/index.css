@@ -1,16 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap');
 
 :root {
-  --ink: #111827;
-  --ink-soft: #5b6472;
-  --danger: #c0392b;
+  --ink: #18354a;
+  --ink-soft: #54748a;
+  --danger: #b24747;
+  --sky: #add8e6;
+  --sky-deep: #8ec4d7;
+  --sky-fog: #dff1f7;
+  --surface: rgba(245, 252, 255, 0.94);
+  --line: rgba(47, 97, 120, 0.12);
   --font-body: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
   --font-display: 'Source Serif 4', Georgia, serif;
   font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
   color: var(--ink);
-  background: #f3f1ed;
+  background: var(--sky);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -30,7 +35,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    linear-gradient(180deg, #2d2d2d 0, #2d2d2d 430px, #f3f1ed 430px, #f3f1ed 100%);
+    linear-gradient(180deg, #b8deea 0, #add8e6 380px, #dff1f7 380px, #dff1f7 100%);
 }
 
 button,
@@ -73,5 +78,5 @@ a {
 }
 
 ::selection {
-  background: rgba(191, 72, 61, 0.18);
+  background: rgba(92, 149, 176, 0.22);
 }
