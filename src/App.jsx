@@ -7,7 +7,7 @@ import {
 } from './converterData'
 import { useConverter } from './hooks/useConverter'
 
-// App just wires the page layout to the converter hook.
+// app just wires the page layout to the converter hook
 function App() {
   const {
     activeErrorMessage,
