@@ -18,10 +18,9 @@ Key features:
 - Extract MP3 audio from uploaded MP4 files in the browser
 - Preview conversions before download and handle download and export client-side
 
-Tech stack:
-- React 19
+Built with:
+- React
 - Vite
-- `pdfjs-dist` for PDF parsing
-- `mammoth` for DOCX extraction
-- `docx` and `jspdf` for document export
-- `lamejs` for MP3 encoding
+- A few browser-side libraries for PDFs, DOCX files, and MP3 export
+
+I kept it as a small React app and only added extra libraries when I needed them for specific file types.
