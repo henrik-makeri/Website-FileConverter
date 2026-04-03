@@ -16,7 +16,7 @@ import {
   guessFormatFromFileName,
 } from '../converters/formatConfig'
 
-// This hook keeps the app state and event handlers in one place.
+// this hook has the app state and event handlers
 export function useConverter() {
   const [sourceKind, setSourceFormat] = useState('csv')
   const [targetKind, setTargetFormat] = useState('json')
@@ -41,7 +41,7 @@ export function useConverter() {
   const activeErrorMessage = fileLoadError || conversionIssue
   const previewDelayMs = uploadedBytes && isBinaryInput ? 300 : 0
 
-  // Rebuild the preview whenever the source, target, or upload changes.
+  // This reebuilds the preview whenever the source, target, or upload changes
   useEffect(() => {
     let cancelled = false
 
@@ -99,7 +99,7 @@ export function useConverter() {
     setConversionError('')
   }
 
-  // Most source switches run through here so the reset logic stays consistent.
+  // source switches for reset logic
   function applySourceChange(nextSource, nextTarget, options = {}) {
     const nextInput = options.inputValue ?? demoInputs[nextSource] ?? ''
     const nextFileName = options.uploadedName ?? ''
