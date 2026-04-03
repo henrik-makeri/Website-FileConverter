@@ -172,20 +172,12 @@ Update the status page.`,
 
 export const valueProps = [
   {
-    title: 'Focused format support',
-    body: 'Built around a smaller set of conversions that are actually useful.',
-  },
-  {
     title: 'Private for current workflows',
     body: 'Most of the current document flow stays in the browser.',
   },
   {
     title: 'Quality-first output',
     body: 'You can preview the result before downloading it.',
-  },
-  {
-    title: 'Expandable foundation',
-    body: 'The current setup leaves room to add more formats later.',
   },
 ]
 
